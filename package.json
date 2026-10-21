@@ -1,0 +1,17 @@
+{
+  "name": "chitalka",
+  "version": "1.0.0",
+  "description": "Читалка — приложение для мотивации детей к чтению",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
