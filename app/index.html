@@ -5,7 +5,7 @@
 <title>Читалка</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Neucha&family=Nunito:wght@400;600;700;800&family=Unbounded:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700;800&family=Alegreya:ital,wght@0,400;0,500;0,700;1,500&family=Caveat:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Days+One&family=Exo+2:ital,wght@0,600;0,800;0,900;1,800;1,900&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Neucha&family=Nunito:wght@400;600;700;800;900&family=Russo+One&family=Unbounded:wght@500;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 /* Layout: one centred column (920px) for shelves and settings; a narrower 680px reading column; bottom sheets for details. */
@@ -295,7 +295,7 @@ body[data-kt]::before{content:""; position:fixed; inset:0 0 auto; height:env(saf
 /* sheet */
 #sheet{position:fixed; inset:0; z-index:50}
 .sheet-back{position:absolute; inset:0; background:rgba(10,14,24,.45)}
-.sheet-card{position:absolute; left:50%; bottom:0; transform:translateX(-50%); width:min(640px, 100%); max-height:86%; overflow:auto;
+.sheet-card{position:absolute; left:50%; bottom:0; transform:translateX(-50%); width:min(640px, 100%); box-sizing:border-box; max-height:86%; overflow:auto;
   background:var(--surface); color:var(--ink); border-radius:22px 22px 0 0; padding:22px max(20px, env(safe-area-inset-left, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)); display:grid; gap:14px;
   box-shadow:0 -10px 40px rgba(0,0,0,.2); animation:up .22s ease-out}
 @keyframes up{from{transform:translate(-50%, 30px); opacity:.4}to{transform:translate(-50%, 0); opacity:1}}
@@ -317,6 +317,263 @@ body[data-kt]::before{content:""; position:fixed; inset:0 0 auto; height:env(saf
 .tp-paper{background:#EDF1EC; color:#2F5DA8; background-image:linear-gradient(rgba(47,93,168,.12) 1px, transparent 1px),linear-gradient(90deg, rgba(47,93,168,.12) 1px, transparent 1px); background-size:12px 12px; font-family:'Neucha',cursive}
 .tp-summer{background:#FFF1C9; color:#F0502C; font-family:'Unbounded',sans-serif; font-weight:700; border-radius:18px}
 .tp-night{background:#10172A; color:#F2C14E; font-family:'Literata',serif}
+.tp-book{background:linear-gradient(to right,#F8F2E4 0 46%,#DCCFB4 49%,#E9DFC9 51%,#FBF7EE 54%); color:#9B2C22; font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:600; font-size:30px; box-shadow:inset 0 -3px 0 #6E2B26}
+
+/* Корешок in the kid header */
+.kacts{display:flex; gap:8px; flex-wrap:wrap}
+.kline{color:var(--muted); font-size:15px; margin-top:4px}
+.kor{width:118px; height:auto; flex:none; margin:-22px 0 -14px}
+@media (max-width:720px){
+  .khead:has(.kor){position:relative; padding-right:76px}
+  .kor{position:absolute; right:0; top:-10px; width:70px; margin:0}
+  .khead:has(.kor) .kacts{margin-right:-76px}
+}
+
+/* ---------- theme: Книга ---------- */
+body[data-kt="book"]{
+  --bg:#E6DDCD; --surface:#FBF7EE; --surface-2:#EFE6D2; --ink:#2B2118; --muted:#6F6250; --line:#D6C9AE;
+  --accent:#2B2118; --on-accent:#FBF7EE; --second:#9B2C22; --on-second:#FBF7EE; --gold:#B9862F; --epic:#6B3550;
+  --danger:#9B2C22; --ok:#2F5D4E; --paper:#FBF7EE; --grid:transparent;
+  --font-display:'Cormorant Garamond',Georgia,serif; --radius:4px;
+  --shadow:0 1px 0 #DDD2BC,0 2px 0 #F3ECDD,0 3px 0 #DAD0BA,0 4px 0 #F1EAD9,0 12px 26px rgba(60,40,20,.16); color-scheme:light;
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' seed='9'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .22  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='d'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .28  0 0 0 0 .18  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23d)'/></svg>");
+}
+body[data-kt="book"] .display{font-style:italic; font-weight:500; letter-spacing:0}
+body[data-kt="book"] .khead h1{font-size:clamp(32px, 5vw, 46px); line-height:1.05}
+body[data-kt="book"] .kline{font-family:var(--font-read); font-style:italic}
+body[data-kt="book"] .eyebrow{font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; letter-spacing:.2em; color:var(--muted)}
+body[data-kt="book"] .btn{font-family:'Cormorant Garamond',serif; font-weight:600; font-size:19px; letter-spacing:.03em}
+body[data-kt="book"] .btn.small{font-size:16px}
+body[data-kt="book"] .cont,
+body[data-kt="book"] .week,
+body[data-kt="book"] .page,
+body[data-kt="book"] .panel,
+body[data-kt="book"] .empty,
+body[data-kt="book"] .dict li{background-color:var(--surface); background-image:var(--grain)}
+body[data-kt="book"] .cont{background-image:var(--grain),linear-gradient(to right,#F8F2E4,#FBF7EE 60%,#EFE6D2 97%,#DCCFB4)}
+body[data-kt="book"] .week{background-image:var(--grain),linear-gradient(to left,#F8F2E4,#FBF7EE 60%,#EFE6D2 97%,#DCCFB4)}
+body[data-kt="book"] .cont h2{font-family:'Cormorant Garamond',serif; font-weight:600; font-size:28px; line-height:1.05}
+body[data-kt="book"] .cont .muted{font-family:var(--font-read); font-style:italic; font-size:14px}
+body[data-kt="book"] .bar{height:3px; border-radius:0; background:#CDBFA3; overflow:visible}
+body[data-kt="book"] .bar i{border-radius:0; position:relative}
+body[data-kt="book"] .bar i::after{content:""; position:absolute; right:-1px; top:-6px; width:2px; height:15px; background:var(--second)}
+body[data-kt="book"] .week h3{font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:26px}
+/* week as a table of contents with dotted leaders */
+body[data-kt="book"] .days{grid-template-columns:1fr; gap:0; text-align:left}
+body[data-kt="book"] .day{display:flex; align-items:baseline; gap:8px; height:30px; font-family:var(--font-read); font-size:15px; font-weight:400; color:#A89A80}
+body[data-kt="book"] .day::after{content:""; order:1; flex:1; border-bottom:1.5px dotted #CDBFA3; transform:translateY(-4px)}
+body[data-kt="book"] .day i{order:2; width:auto; height:auto; border:0; background:none; border-radius:0; font-size:15px; color:inherit}
+body[data-kt="book"] .day i:empty::before{content:"…"}
+body[data-kt="book"] .day.on{color:var(--ink)}
+body[data-kt="book"] .day.on i{background:none; border:0; color:var(--second)}
+body[data-kt="book"] .day.on::after{border-color:#B9AC92}
+body[data-kt="book"] .day.today, body[data-kt="book"] .day.today span{color:var(--second); font-style:italic}
+body[data-kt="book"] .day.today span::after{content:" — сегодня"}
+body[data-kt="book"] .kstat{background:transparent; border:1px solid var(--line); border-radius:2px}
+body[data-kt="book"] .kstat b{font-family:'Cormorant Garamond',serif; font-size:28px}
+/* home tabs as thumb-index tabs */
+body[data-kt="book"] .tabs{background:none; padding:0; gap:4px; border-bottom:2px solid #6E2B26; border-radius:0; width:100%}
+body[data-kt="book"] .tab{border-radius:8px 8px 0 0; background:#DCCDB0; color:#3A2E22; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:17px; letter-spacing:.04em; padding:10px 18px}
+body[data-kt="book"] .tab.on{background:#FBF7EE; color:var(--second); box-shadow:0 -2px 6px rgba(60,40,20,.12)}
+body[data-kt="book"] .cover{border-radius:2px 5px 5px 2px; background:hsl(var(--h) 32% 30%); box-shadow:inset 7px 0 0 rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.08), 0 6px 14px rgba(60,40,20,.22)}
+body[data-kt="book"] .cover::after{inset:10px 10px 10px 16px; width:auto; aspect-ratio:auto; border-radius:0; background:none; border:1px solid rgba(224,194,122,.55)}
+body[data-kt="book"] .cover b{font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:600; font-size:19px; color:#F3E4BE; padding:6px 4px 0}
+body[data-kt="book"] .cover span{font-family:'Cormorant Garamond',serif; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:#E0C27A; padding:0 4px 6px}
+body[data-kt="book"] .cover.sm b{font-size:13px}
+body[data-kt="book"] .cover.sm span{font-size:10px}
+body[data-kt="book"] .dict li b{font-style:italic}
+
+/* ---------- illustrated scene behind the home header; the cards start below the horizon ---------- */
+#scene{position:absolute; left:0; right:0; top:0; height:0; overflow:hidden; pointer-events:none}
+#scene svg{display:block; width:100%; height:100%}
+#app{position:relative}
+body[data-scene] .toprow{margin-top:132px}
+body[data-scene] .kor{width:150px; margin:-14px 0 -24px}
+.ktop{font-size:13px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; margin-bottom:6px; width:fit-content}
+@media (max-width:720px){
+  body[data-scene] .toprow{margin-top:96px}
+  body[data-scene] .kor{width:78px; margin:0}
+  body[data-scene] .kline{font-size:15px}
+  body[data-scene] .ktop{font-size:11px}
+}
+.tp-gravity{background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='28'><path d='M12 0 L19 12 L16 12 L22 24 L2 24 L8 12 L5 12 Z' fill='%233F7262'/><rect y='23' width='24' height='5' fill='%233F7262'/></svg>") bottom/auto 26px repeat-x,linear-gradient(#93CBC6,#F4E1B3 60%,#F3A66C); color:#6B2416; font-family:'Alegreya SC',serif; font-weight:800; align-content:start; padding-top:8px}
+.tp-ninjago{background:radial-gradient(circle at 10px 9px,#5DB35A 0 7px,transparent 7.5px),radial-gradient(circle at 10px 11px,#3C8A3B 0 7px,transparent 7.5px) #4B9F4A; background-size:20px 20px; color:#F2CD37; font-family:'Russo One',sans-serif; text-shadow:0 3px 0 #05131D,2px 0 0 #05131D,-2px 0 0 #05131D,0 -2px 0 #05131D}
+.tp-space{background:radial-gradient(circle at 78% 30%,#2E7BEA 0 13px,transparent 14px),radial-gradient(1.2px 1.2px at 20% 25%,#fff,transparent),radial-gradient(1px 1px at 60% 80%,#fff,transparent),radial-gradient(1.4px 1.4px at 88% 75%,#fff,transparent),radial-gradient(120% 120% at 30% 0,#1B2C78,#0A1238); color:#FFC93C; font-family:'Days One',sans-serif}
+.tp-futurama{background:linear-gradient(#78CFC2,#F4E8C6 60%,#F6B59A); color:#1E1A1A; font-family:'Exo 2',sans-serif; font-weight:900; font-style:italic; box-shadow:inset 0 0 0 3px #1E1A1A}
+
+/* ---------- theme: Гравити Фолз ---------- */
+body[data-kt="gravity"]{
+  --bg:#D9A468; --surface:#F5E8C7; --surface-2:#EAD3A0; --ink:#2B1A10; --muted:#5A4632; --line:#CDB585;
+  --accent:#7A2B2B; --on-accent:#F5E8C7; --second:#3F7A5E; --on-second:#F5E8C7; --gold:#C98A2B; --epic:#6B3F8E;
+  --danger:#B03A2E; --ok:#3F7A5E; --paper:#F5E8C7; --grid:transparent;
+  --font-display:'Alegreya SC',Georgia,serif; --font-ui:'Alegreya',Georgia,serif; --radius:4px;
+  --shadow:0 2px 0 #E2D0A4,0 10px 18px rgba(70,40,15,.28); color-scheme:light;
+  background-image:repeating-linear-gradient(to bottom,#D9A468 0 44px,#B88049 44px 47px);
+}
+body[data-kt="gravity"] .display{font-weight:800; letter-spacing:.01em}
+body[data-kt="gravity"] .khead h1{font-size:clamp(34px, 5.4vw, 56px); line-height:1}
+body[data-kt="gravity"] .ktop{font-family:'Caveat',cursive; font-weight:700; font-size:24px; letter-spacing:0; text-transform:none; color:#7A2B2B; margin-bottom:0}
+body[data-kt="gravity"] .kline{color:#3B2A1E; font-size:18px; max-width:44ch}
+body[data-kt="gravity"] .btn{font-family:'Alegreya SC',serif; font-weight:800; letter-spacing:.02em; box-shadow:0 4px 0 #4E1A1A}
+body[data-kt="gravity"] .btn.alt{background:#EAD3A0; color:#3A2414; border:2.5px solid #3A2414; box-shadow:0 3px 0 #3A2414}
+body[data-kt="gravity"] .btn.ghost{background:rgba(245,232,199,.6); border:2.5px solid #3A2414; color:#3A2414; box-shadow:none}
+body[data-kt="gravity"] .btn:active{transform:translateY(3px); box-shadow:none}
+body[data-kt="gravity"] .cont, body[data-kt="gravity"] .week{position:relative; border:0; border-radius:2px}
+body[data-kt="gravity"] .cont{transform:rotate(-.6deg)}
+body[data-kt="gravity"] .week{transform:rotate(.8deg)}
+body[data-kt="gravity"] .cont::before, body[data-kt="gravity"] .cont::after, body[data-kt="gravity"] .week::before{content:""; position:absolute; width:74px; height:22px; background:rgba(236,224,180,.85); box-shadow:0 1px 2px rgba(0,0,0,.1)}
+body[data-kt="gravity"] .cont::before{left:-18px; top:4px; transform:rotate(-36deg)}
+body[data-kt="gravity"] .cont::after{right:-18px; top:4px; transform:rotate(36deg)}
+body[data-kt="gravity"] .week::before{left:calc(50% - 37px); top:-11px; transform:rotate(3deg)}
+body[data-kt="gravity"] .cont h2{font-family:'Alegreya SC',serif; font-weight:800; font-size:24px}
+body[data-kt="gravity"] .week h3{font-family:'Caveat',cursive; font-weight:700; font-size:26px; line-height:1.05}
+body[data-kt="gravity"] .bar{height:4px; border-radius:0; overflow:visible; background:repeating-linear-gradient(90deg,#BBA67A 0 6px,transparent 6px 11px)}
+body[data-kt="gravity"] .bar i{position:relative; background:#7A2B2B; border-radius:2px}
+body[data-kt="gravity"] .bar i::after{content:"✕"; position:absolute; right:-8px; top:-9px; font-size:16px; font-weight:900; line-height:1; color:#7A2B2B}
+body[data-kt="gravity"] .day span{font-family:'Caveat',cursive; font-size:19px; font-weight:700; color:#5A4632}
+body[data-kt="gravity"] .day i{position:relative; width:34px; height:32px; border:2.2px solid #2B1A10; border-radius:3px 6px 2px 5px; background:none; color:#3F7A5E; font-size:22px; font-weight:900; opacity:.4}
+body[data-kt="gravity"] .day:nth-child(odd) i{transform:rotate(-3deg)}
+body[data-kt="gravity"] .day:nth-child(even) i{transform:rotate(2deg)}
+body[data-kt="gravity"] .day.on i, body[data-kt="gravity"] .day.today i{opacity:1; background:none; border:2.2px solid #2B1A10; color:#3F7A5E}
+body[data-kt="gravity"] .day.today i::after{content:""; position:absolute; inset:-8px -7px; border:2.6px solid #C0392B; border-radius:50%; transform:rotate(-8deg)}
+body[data-kt="gravity"] .day.today i:empty::before{content:"?"; font-family:'Caveat',cursive; font-size:24px; color:#C0392B}
+body[data-kt="gravity"] .day.today span{color:#C0392B}
+body[data-kt="gravity"] .kstat{background:#EAD3A0; border-radius:3px}
+body[data-kt="gravity"] .kstat b{font-family:'Alegreya SC',serif}
+body[data-kt="gravity"] .tabs{background:#5A3A24; border:3px solid #3A2414; border-radius:4px; padding:4px; box-shadow:0 4px 0 #3A2414}
+body[data-kt="gravity"] .tab{font-family:'Alegreya SC',serif; font-weight:700; font-size:16px; color:#F5E8C7; border-radius:2px}
+body[data-kt="gravity"] .tab.on{background:#3A2414; color:#F3A66C; box-shadow:none}
+body[data-kt="gravity"] .cover{border-radius:2px 4px 4px 2px; box-shadow:inset 7px 0 0 rgba(0,0,0,.25),0 0 0 3px #2B1A10,0 8px 14px rgba(40,20,5,.35)}
+body[data-kt="gravity"] .cover b{font-family:'Alegreya SC',serif; font-weight:800}
+body[data-kt="gravity"] .bookbtn .meta{color:#2B1A10}
+body[data-kt="gravity"] .empty, body[data-kt="gravity"] .dict li{border-color:#BBA67A}
+
+/* ---------- theme: Ниндзяго ---------- */
+body[data-kt="ninjago"]{
+  --bg:#4B9F4A; --surface:#FFFFFF; --surface-2:#E5EAEC; --ink:#05131D; --muted:#22323C; --line:#B4BEC4;
+  --accent:#C91A09; --on-accent:#FFFFFF; --second:#0055BF; --on-second:#FFFFFF; --gold:#CC9C3D; --epic:#7A45C8;
+  --danger:#C91A09; --ok:#00852B; --paper:#FFFFFF; --grid:transparent;
+  --font-display:'Russo One','Nunito',sans-serif; --radius:10px; --shadow:0 6px 0 #05131D; color-scheme:light;
+  background-image:radial-gradient(circle at 11px 10px,#8ED48A 0 2.5px,transparent 3px),radial-gradient(circle at 14px 13px,#5DB35A 0 9px,transparent 9.5px),radial-gradient(circle at 14px 15px,#3C8A3B 0 9px,transparent 9.5px);
+  background-size:28px 28px; background-position:6px 12px;
+}
+body[data-kt="ninjago"] .display{font-weight:400; letter-spacing:0}
+body[data-kt="ninjago"] .khead h1{font-size:clamp(32px, 5vw, 52px); line-height:1}
+body[data-kt="ninjago"] .ktop{background:#05131D; color:#F2CD37; font-family:'Russo One',sans-serif; font-weight:400; padding:5px 12px; border-radius:4px}
+body[data-kt="ninjago"] .kline{color:#05131D; font-weight:800; font-size:17px; max-width:42ch}
+body[data-kt="ninjago"] .btn{font-family:'Russo One',sans-serif; font-weight:400; letter-spacing:.03em; border:3px solid #05131D; border-radius:8px; color:#F2CD37; box-shadow:0 5px 0 #05131D}
+body[data-kt="ninjago"] .btn.alt{background:#F2CD37; color:#05131D}
+body[data-kt="ninjago"] .btn.second, body[data-kt="ninjago"] .btn.danger{color:#FFFFFF}
+body[data-kt="ninjago"] .btn.ghost{background:#FFFFFF; color:#05131D}
+body[data-kt="ninjago"] .btn:active{transform:translateY(4px); box-shadow:0 1px 0 #05131D}
+body[data-kt="ninjago"] .cont, body[data-kt="ninjago"] .week, body[data-kt="ninjago"] .panel, body[data-kt="ninjago"] .empty, body[data-kt="ninjago"] .page, body[data-kt="ninjago"] .dict li, body[data-kt="ninjago"] .opt{border:3px solid #05131D; box-shadow:0 6px 0 #05131D}
+body[data-kt="ninjago"] .cont, body[data-kt="ninjago"] .week{position:relative; border-radius:10px}
+body[data-kt="ninjago"] .cont::before, body[data-kt="ninjago"] .week::before{content:""; position:absolute; left:16px; right:16px; top:-15px; height:13px; background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='13'><path d='M8 13 V7 a5 5 0 0 1 5 -5 h20 a5 5 0 0 1 5 5 V13' fill='%23C91A09' stroke='%2305131D' stroke-width='3'/></svg>") repeat-x}
+body[data-kt="ninjago"] .week::before{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='13'><path d='M8 13 V7 a5 5 0 0 1 5 -5 h20 a5 5 0 0 1 5 5 V13' fill='%23F2CD37' stroke='%2305131D' stroke-width='3'/></svg>")}
+body[data-kt="ninjago"] .cont h2{font-family:'Russo One',sans-serif; font-weight:400; font-size:23px}
+body[data-kt="ninjago"] .week h3{font-family:'Russo One',sans-serif; font-weight:400; font-size:14px; letter-spacing:.1em; text-transform:uppercase}
+body[data-kt="ninjago"] .bar{height:20px; border:2.5px solid #05131D; border-radius:3px; background:#E5EAEC}
+body[data-kt="ninjago"] .bar i{border-radius:0; background:repeating-linear-gradient(90deg,#C91A09 0 26px,#05131D 26px 28.5px,#0055BF 28.5px 54.5px,#05131D 54.5px 57px,#00852B 57px 83px,#05131D 83px 85.5px)}
+body[data-kt="ninjago"] .days{gap:5px}
+body[data-kt="ninjago"] .day{gap:6px; padding-top:8px; font-family:'Russo One',sans-serif; font-weight:400; color:#3A4A55}
+body[data-kt="ninjago"] .day:nth-child(1){--b:#C91A09} body[data-kt="ninjago"] .day:nth-child(2){--b:#0055BF} body[data-kt="ninjago"] .day:nth-child(3){--b:#1B2A34} body[data-kt="ninjago"] .day:nth-child(4){--b:#00852B}
+body[data-kt="ninjago"] .day:nth-child(5){--b:#F2CD37} body[data-kt="ninjago"] .day:nth-child(6){--b:#CC9C3D} body[data-kt="ninjago"] .day:nth-child(7){--b:#7A45C8}
+body[data-kt="ninjago"] .day i{position:relative; width:100%; height:26px; border-radius:3px; border:2.5px dashed #8A979E; background:#EEF1F2; color:#FFFFFF; font-size:14px}
+body[data-kt="ninjago"] .day.on i{border:2.5px solid #05131D; background:var(--b)}
+body[data-kt="ninjago"] .day:nth-child(5).on i, body[data-kt="ninjago"] .day:nth-child(6).on i{color:#05131D}
+body[data-kt="ninjago"] .day.on i::before, body[data-kt="ninjago"] .day.on i::after{content:""; position:absolute; top:-9px; width:26%; height:6px; background:var(--b); border:2.5px solid #05131D; border-bottom:0; border-radius:3px 3px 0 0}
+body[data-kt="ninjago"] .day.on i::before{left:12%}
+body[data-kt="ninjago"] .day.on i::after{right:12%}
+body[data-kt="ninjago"] .day.today i{outline:3px solid #F2CD37; outline-offset:2px}
+body[data-kt="ninjago"] .day.today span{color:#C91A09}
+body[data-kt="ninjago"] .kstat{background:#F4F4F4; border:2.5px solid #05131D; border-radius:6px}
+body[data-kt="ninjago"] .kstat b{font-family:'Russo One',sans-serif; font-weight:400}
+body[data-kt="ninjago"] .tabs{background:#F4F4F4; border:3px solid #05131D; border-radius:10px; box-shadow:0 5px 0 #05131D}
+body[data-kt="ninjago"] .tab{font-family:'Russo One',sans-serif; font-weight:400; color:#05131D; border:3px solid transparent}
+body[data-kt="ninjago"] .tab.on{background:#C91A09; color:#F2CD37; border-color:#05131D; box-shadow:none}
+body[data-kt="ninjago"] .cover{border-radius:6px; box-shadow:inset 7px 0 0 rgba(0,0,0,.2),0 0 0 3px #05131D,0 7px 0 3px #05131D}
+body[data-kt="ninjago"] .cover b{font-family:'Russo One',sans-serif; font-weight:400}
+body[data-kt="ninjago"] .bookbtn .meta{color:#FFFFFF; font-family:'Russo One',sans-serif; font-weight:400; text-shadow:0 2px 0 #05131D}
+
+/* ---------- theme: Шаранутый космос ---------- */
+body[data-kt="space"]{
+  --bg:#0A1238; --surface:#16205C; --surface-2:#222E72; --ink:#EEF2FF; --muted:#AEB9E8; --line:#34418C;
+  --accent:#FFC93C; --on-accent:#14122A; --second:#5FB4FF; --on-second:#06103A; --gold:#FFC93C; --epic:#B48CFF;
+  --danger:#FF7A6B; --ok:#6FD3A0; --paper:#111A4E; --grid:transparent;
+  --font-display:'Days One','Nunito',sans-serif; --radius:20px; --shadow:0 12px 30px rgba(0,0,10,.45); color-scheme:dark;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><g fill='%23fff'><circle cx='12' cy='18' r='1.2' opacity='.9'/><circle cx='64' cy='8' r='.8' opacity='.6'/><circle cx='110' cy='40' r='1.4' fill='%23CFE0FF'/><circle cx='34' cy='76' r='.9' opacity='.7'/><circle cx='92' cy='96' r='1.1' opacity='.8'/><circle cx='130' cy='124' r='.7' opacity='.5'/><circle cx='56' cy='128' r='1.3' fill='%23FFE9B0' opacity='.8'/><circle cx='8' cy='112' r='.7' opacity='.6'/></g></svg>"),radial-gradient(140% 900px at 30% 0,#1B2C78,#0C1550 55%,#0A1238);
+}
+body[data-kt="space"] #scene{-webkit-mask-image:linear-gradient(#000 84%, transparent); mask-image:linear-gradient(#000 84%, transparent)}
+body[data-kt="space"] .display{font-weight:400; letter-spacing:.02em}
+body[data-kt="space"] .khead h1{font-size:clamp(30px, 5vw, 50px); line-height:1.02; text-transform:uppercase; text-shadow:0 0 24px rgba(95,180,255,.45)}
+body[data-kt="space"] .ktop{font-family:'Days One',sans-serif; font-weight:400; font-size:12px; letter-spacing:.16em; color:#9FD3FF}
+body[data-kt="space"] .kline{color:#C9D3FF; font-weight:700; font-size:17px; max-width:42ch}
+body[data-kt="space"] .btn{border-radius:999px; font-weight:900; box-shadow:0 0 18px rgba(255,201,60,.35)}
+body[data-kt="space"] .btn.alt{background:rgba(255,255,255,.1); color:#EEF2FF; border:1.5px solid rgba(160,190,255,.4); box-shadow:none}
+body[data-kt="space"] .btn.ghost{border-color:rgba(160,190,255,.4); box-shadow:none}
+body[data-kt="space"] .cont, body[data-kt="space"] .week, body[data-kt="space"] .empty, body[data-kt="space"] .dict li{background:rgba(14,22,66,.78); border:1.5px solid rgba(160,190,255,.28); border-radius:24px; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px)}
+body[data-kt="space"] .cont h2{font-family:'Days One',sans-serif; font-weight:400; font-size:20px}
+body[data-kt="space"] .week h3{font-family:'Days One',sans-serif; font-weight:400; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:#FFC93C}
+body[data-kt="space"] .bar{height:8px; background:rgba(255,255,255,.12); overflow:visible}
+body[data-kt="space"] .bar i{position:relative; background:linear-gradient(90deg,#5FB4FF,#FFC93C); box-shadow:0 0 12px rgba(255,201,60,.5)}
+body[data-kt="space"] .sess-prog .bar, body[data-kt="gravity"] .sess-prog .bar{margin-right:12px}
+body[data-kt="space"] .bar i::after{content:"🚀"; position:absolute; right:-14px; top:-10px; font-size:20px; line-height:1; transform:rotate(45deg)}
+body[data-kt="space"] .day{color:#AEB9E8}
+body[data-kt="space"] .day:nth-child(1){--p:#A9A29A} body[data-kt="space"] .day:nth-child(2){--p:#E8C47A} body[data-kt="space"] .day:nth-child(3){--p:#2E7BEA} body[data-kt="space"] .day:nth-child(4){--p:#E0603A}
+body[data-kt="space"] .day:nth-child(5){--p:#D9A66E} body[data-kt="space"] .day:nth-child(6){--p:#E3CB98} body[data-kt="space"] .day:nth-child(7){--p:#5B8CFF}
+body[data-kt="space"] .day i{width:34px; height:34px; border:0; color:transparent; filter:saturate(.35) brightness(.55);
+  background:linear-gradient(#14122A,#14122A) 26% 50%/8px 2.5px no-repeat,linear-gradient(#14122A,#14122A) 74% 50%/8px 2.5px no-repeat,var(--p); box-shadow:inset -6px -5px 0 rgba(6,16,58,.35)}
+body[data-kt="space"] .day.on i{filter:none; border:0; color:transparent;
+  background:radial-gradient(circle at 40% 47%,#14122A 0 2px,transparent 2.6px),radial-gradient(circle at 66% 47%,#14122A 0 2px,transparent 2.6px),radial-gradient(4.5px 6px at 37% 43%,#fff 0 88%,#14122A 90% 100%,transparent 100%),radial-gradient(4.5px 6px at 63% 43%,#fff 0 88%,#14122A 90% 100%,transparent 100%),var(--p);
+  box-shadow:inset -6px -5px 0 rgba(6,16,58,.3),0 0 14px color-mix(in srgb, var(--p) 70%, transparent)}
+body[data-kt="space"] .day.today i{filter:none; outline:2.5px solid #FFC93C; outline-offset:3px}
+body[data-kt="space"] .day.today span{color:#FFC93C}
+body[data-kt="space"] .kstat{background:rgba(255,255,255,.07)}
+body[data-kt="space"] .tabs{background:rgba(14,22,66,.78); border:1.5px solid rgba(160,190,255,.28); border-radius:999px}
+body[data-kt="space"] .tab{border-radius:999px; color:#C9D3FF}
+body[data-kt="space"] .tab.on{background:#FFC93C; color:#14122A; box-shadow:0 0 14px rgba(255,201,60,.45)}
+body[data-kt="space"] .cover{border-radius:8px 14px 14px 8px; box-shadow:inset 7px 0 0 rgba(0,0,0,.25),0 0 0 1.5px rgba(160,190,255,.35),0 10px 24px rgba(0,0,10,.5)}
+body[data-kt="space"] .page{border-color:rgba(160,190,255,.2)}
+
+/* ---------- theme: Футурама ---------- */
+body[data-kt="futurama"]{
+  --bg:#ECE8F4; --surface:#FFFFFF; --surface-2:#E4DFF0; --ink:#1E1A1A; --muted:#575068; --line:#CFC8E2;
+  --accent:#D9483B; --on-accent:#FFFFFF; --second:#7E3FA6; --on-second:#FFFFFF; --gold:#D99A1E; --epic:#7E3FA6;
+  --danger:#C7362B; --ok:#2E8B57; --paper:#FFFFFF; --grid:transparent;
+  --font-display:'Exo 2','Nunito',sans-serif; --font-ui:'Exo 2','Nunito',sans-serif; --radius:22px; --shadow:0 6px 0 #B9B2CF; color-scheme:light;
+  background-image:linear-gradient(#DCD6EA 2px,transparent 2px),linear-gradient(90deg,#DCD6EA 2px,transparent 2px); background-size:260px 130px;
+}
+body[data-kt="futurama"] .display{font-weight:900; font-style:italic; letter-spacing:-.01em}
+body[data-kt="futurama"] .khead h1{font-size:clamp(34px, 5.4vw, 58px); line-height:1}
+body[data-kt="futurama"] .ktop{background:#1E1A1A; color:#9EEFE6; font-style:italic; padding:5px 14px; border-radius:14px}
+body[data-kt="futurama"] .kline{color:#1E1A1A; font-weight:600; font-size:18px; max-width:42ch}
+body[data-kt="futurama"] .btn{border:3px solid #1E1A1A; border-radius:999px; font-weight:900; font-style:italic; box-shadow:0 4px 0 #1E1A1A}
+body[data-kt="futurama"] .btn.alt{background:#FFFFFF}
+body[data-kt="futurama"] .btn.ghost{background:rgba(255,255,255,.55); box-shadow:none}
+body[data-kt="futurama"] .btn:active{transform:translateY(3px); box-shadow:0 1px 0 #1E1A1A}
+body[data-kt="futurama"] .cont, body[data-kt="futurama"] .week, body[data-kt="futurama"] .panel, body[data-kt="futurama"] .empty, body[data-kt="futurama"] .page, body[data-kt="futurama"] .dict li, body[data-kt="futurama"] .opt{border:3px solid #1E1A1A; box-shadow:0 6px 0 #B9B2CF}
+body[data-kt="futurama"] .cont, body[data-kt="futurama"] .week{position:relative; border-radius:28px; padding-top:34px}
+body[data-kt="futurama"] .cont::before, body[data-kt="futurama"] .week::before{content:""; position:absolute; left:0; right:0; top:0; height:18px; border-radius:25px 25px 0 0; border-bottom:3px solid #1E1A1A;
+  background:radial-gradient(circle,#FFFFFF 0 2.5px,#1E1A1A 3px 4.5px,transparent 5px) 14px 50%/24px 18px repeat-x,#78CFC2}
+body[data-kt="futurama"] .week::before{background-color:#F6B59A}
+body[data-kt="futurama"] .cont h2{font-weight:900; font-style:italic; font-size:23px}
+body[data-kt="futurama"] .week h3{font-weight:900; font-style:italic}
+body[data-kt="futurama"] .bar{height:18px; border:3px solid #1E1A1A; background:#D6F4F0; box-shadow:inset 0 3px 0 #FFFFFF}
+body[data-kt="futurama"] .bar i{background:linear-gradient(#9BDB8F,#6CC26A); box-shadow:inset 0 3px 0 rgba(255,255,255,.6)}
+body[data-kt="futurama"] .days{position:relative}
+body[data-kt="futurama"] .days::before{content:""; position:absolute; left:7%; right:7%; top:13px; height:6px; border-radius:3px; background:#1E1A1A}
+body[data-kt="futurama"] .day{position:relative; font-style:italic; font-weight:900; color:#575068}
+body[data-kt="futurama"] .day i{width:32px; height:32px; background:#FFFFFF; border:3px solid #1E1A1A; color:#1E1A1A; font-weight:900}
+body[data-kt="futurama"] .day.on i{background:#6CC26A; border:3px solid #1E1A1A; color:#1E1A1A}
+body[data-kt="futurama"] .day.today i{background:#D9483B; color:#FFFFFF; box-shadow:0 0 0 4px #F6B59A}
+body[data-kt="futurama"] .day.today span{color:#D9483B}
+body[data-kt="futurama"] .kstat{background:#F4F1FA; border:2.5px solid #1E1A1A}
+body[data-kt="futurama"] .tabs{background:#FFFFFF; border:3px solid #1E1A1A; border-radius:999px; box-shadow:0 4px 0 #B9B2CF}
+body[data-kt="futurama"] .tab{border-radius:999px; font-weight:800; font-style:italic; color:#1E1A1A}
+body[data-kt="futurama"] .tab.on{background:#1E1A1A; color:#9EEFE6; box-shadow:none}
+body[data-kt="futurama"] .cover{border-radius:8px 16px 16px 8px; box-shadow:inset 7px 0 0 rgba(0,0,0,.2),0 0 0 3px #1E1A1A,0 7px 0 3px #B9B2CF}
+body[data-kt="futurama"] .cover b{font-family:'Exo 2',sans-serif; font-weight:900; font-style:italic}
 .theme .muted{font-size:13px}
 .herolist{display:grid; gap:8px}
 .herolist button{display:flex; gap:12px; align-items:center; text-align:left; padding:10px; border-radius:12px; background:var(--surface-2)}
@@ -385,6 +642,7 @@ body[data-kt]::before{content:""; position:fixed; inset:0 0 auto; height:env(saf
 }
 </style>
 
+<div id="scene" aria-hidden="true"></div>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
 <div id="toast" role="status" hidden></div>
@@ -394,6 +652,7 @@ body[data-kt]::before{content:""; position:fixed; inset:0 0 auto; height:env(saf
 'use strict';
 const app = document.getElementById('app');
 const sheetEl = document.getElementById('sheet');
+const sceneEl = document.getElementById('scene');
 const toastEl = document.getElementById('toast');
 const $ = s => document.querySelector(s);
 
@@ -420,10 +679,194 @@ function toast(msg){ toastEl.textContent = msg; toastEl.hidden = false; clearTim
 
 const COLORS = ['#E4572E', '#2F5DA8', '#14897F', '#8E4FD6', '#D9831F', '#3A7D44'];
 const THEMES = [
+  {id:'book', name:'Книга', d:'Как настоящая книга: страницы, закладки, оглавление'},
+  {id:'gravity', name:'Гравити Фолз', d:'Лес, Хижина и журнал с шифрами'},
+  {id:'ninjago', name:'Ниндзяго', d:'Кубики LEGO, додзё и четыре стихии'},
+  {id:'space', name:'Шаранутый космос', d:'Тёмный космос и планеты с характером'},
+  {id:'futurama', name:'Футурама', d:'Новый Нью-Йорк, 3026 год, доставка книг'},
   {id:'paper', name:'Тетрадь', d:'Клетка и рукописные заголовки'},
   {id:'summer', name:'Лето', d:'Ярко и весело'},
   {id:'night', name:'Ночь', d:'Тёмная, глаза не устают'}
 ];
+const timeHello = () => { const h = new Date().getHours(); return h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер'; };
+const weekday = () => new Date().toLocaleDateString('ru-RU', {weekday:'long'});
+const THEME_HELLO = {
+  book: n => timeHello() + ', ' + n + '.',
+  gravity: n => 'Привет, ' + n + '.'
+};
+const THEME_TOP = {
+  gravity: kd => 'Запись № ' + (kd.stats.days.length + 1) + ' · ' + weekday() + ', ' + new Date().toLocaleDateString('ru-RU', {day:'numeric', month:'long'}),
+  ninjago: () => 'Тренировка · ' + weekday(),
+  space: () => 'Солнечная система · ' + weekday(),
+  futurama: () => 'Новый Нью-Йорк · ' + weekday() + ' · 3026'
+};
+const THEME_LINE = {
+  book:'Книга ждёт тебя на той же странице.',
+  gravity:'В лесу снова что-то странное. Лучшее укрытие — недочитанная книга.',
+  ninjago:'Настоящий ниндзя тренируется каждый день. Мастер Ву бы гордился.',
+  space:'Земля в шоке: ты снова читаешь. Даже Сатурн почти улыбается.',
+  futurama:'Курьер Корешок прибыл. Груз: новая глава. Расписываться не нужно.'
+};
+
+/* ---------- illustrated backdrops behind the kid home header (viewBox 1600×440, cropped from the sides on narrow screens) ---------- */
+const SCENE_SVG = body => `<svg viewBox="0 0 1600 440" preserveAspectRatio="xMidYMax slice">${body}</svg>`;
+const SCENES = {
+  gravity:() => SCENE_SVG(`<defs><linearGradient id="gfSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#93CBC6"/><stop offset=".55" stop-color="#F4E1B3"/><stop offset="1" stop-color="#F3A66C"/></linearGradient>
+<pattern id="gfFar" x="7" y="216" width="34" height="62" patternUnits="userSpaceOnUse"><path d="M17 0 L26 18 L22 18 L30 36 L25 36 L34 58 L0 58 L9 36 L4 36 L12 18 L8 18 Z" fill="#A9C8B4"/><rect y="57" width="34" height="5" fill="#A9C8B4"/></pattern>
+<pattern id="gfMid" x="-12" y="242" width="48" height="90" patternUnits="userSpaceOnUse"><path d="M24 0 L36 24 L31 24 L42 50 L36 50 L48 84 L0 84 L12 50 L6 50 L17 24 L12 24 Z" fill="#6E9C88"/><rect y="83" width="48" height="7" fill="#6E9C88"/></pattern>
+<pattern id="gfNear" x="20" y="276" width="66" height="128" patternUnits="userSpaceOnUse"><path d="M33 0 L49 32 L42 32 L57 68 L49 68 L66 120 L0 120 L17 68 L9 68 L24 32 L17 32 Z" fill="#3F7262"/><rect y="119" width="66" height="9" fill="#3F7262"/></pattern></defs>
+<rect width="1600" height="440" fill="url(#gfSky)"/>
+<circle cx="640" cy="262" r="98" fill="#FFE7AE" opacity=".35"/><circle cx="640" cy="262" r="64" fill="#FFE7AE"/>
+<g stroke="#5A3A26" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".7"><path d="M600 236 q8 -7 14 0 q6 -7 14 0"/><path d="M646 222 q6 -5 11 0 q5 -5 11 0"/><path d="M684 246 q5 -4 9 0 q4 -4 9 0"/></g>
+<rect y="216" width="1600" height="62" fill="url(#gfFar)"/><rect y="276" width="1600" height="164" fill="#A9C8B4"/>
+<rect y="242" width="1600" height="90" fill="url(#gfMid)"/><rect y="330" width="1600" height="110" fill="#6E9C88"/>
+<rect y="276" width="1600" height="128" fill="url(#gfNear)"/><rect y="402" width="1600" height="38" fill="#3F7262"/>
+<path d="M24 120 L58 196 L46 196 L76 270 L62 270 L98 380 L-50 380 L-14 270 L-28 270 L2 196 L-10 196 Z" transform="translate(220 50)" fill="#2E5A4D"/>
+<path d="M1160 40 L1196 120 L1182 120 L1214 200 L1198 200 L1236 300 L1084 300 L1122 200 L1106 200 L1138 120 L1124 120 Z" transform="translate(240 130)" fill="#2E5A4D"/>
+<g transform="translate(340 113) scale(.6)">
+<rect x="820" y="330" width="268" height="152" fill="#8C5A34" stroke="#3A2414" stroke-width="3"/>
+<g stroke="#6E4426" stroke-width="2"><line x1="820" y1="352" x2="1088" y2="352"/><line x1="820" y1="374" x2="1088" y2="374"/><line x1="820" y1="396" x2="1088" y2="396"/><line x1="820" y1="418" x2="1088" y2="418"/><line x1="820" y1="440" x2="1088" y2="440"/><line x1="820" y1="462" x2="1088" y2="462"/></g>
+<path d="M800 334 L954 236 L1108 334 Z" fill="#5A3A26" stroke="#3A2414" stroke-width="3" stroke-linejoin="round"/>
+<path d="M922 300 L954 280 L986 300 L986 330 L922 330 Z" fill="#E9C77E" stroke="#3A2414" stroke-width="2.5"/><line x1="954" y1="282" x2="954" y2="330" stroke="#3A2414" stroke-width="2"/>
+<rect x="846" y="362" width="54" height="46" fill="#FFD98A" stroke="#3A2414" stroke-width="3"/><line x1="873" y1="362" x2="873" y2="408" stroke="#3A2414" stroke-width="2.5"/><line x1="846" y1="385" x2="900" y2="385" stroke="#3A2414" stroke-width="2.5"/>
+<rect x="1008" y="362" width="54" height="46" fill="#FFD98A" stroke="#3A2414" stroke-width="3"/><line x1="1035" y1="362" x2="1035" y2="408" stroke="#3A2414" stroke-width="2.5"/><line x1="1008" y1="385" x2="1062" y2="385" stroke="#3A2414" stroke-width="2.5"/>
+<rect x="928" y="392" width="52" height="90" fill="#5A3A26" stroke="#3A2414" stroke-width="3"/><circle cx="970" cy="440" r="3.5" fill="#E9C77E"/>
+<line x1="890" y1="218" x2="890" y2="276" stroke="#3A2414" stroke-width="5"/><line x1="1018" y1="218" x2="1018" y2="276" stroke="#3A2414" stroke-width="5"/>
+<rect x="852" y="184" width="204" height="40" rx="3" fill="#EAD3A0" stroke="#3A2414" stroke-width="3"/>
+<text x="868" y="212" font-family="Alegreya SC" font-weight="800" font-size="22" fill="#6B2416" letter-spacing="1">ХИЖИНА ТАЙ</text>
+<text x="0" y="0" font-family="Alegreya SC" font-weight="800" font-size="24" fill="#6B2416" transform="translate(1046,290) rotate(34)">Н</text></g>
+<rect y="430" width="1600" height="10" fill="#8A5A30"/>`),
+  ninjago:() => SCENE_SVG(`<defs><linearGradient id="njSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FD0EC"/><stop offset="1" stop-color="#FCEBCB"/></linearGradient>
+<pattern id="njStud" x="6" y="404" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="14" cy="15" r="9" fill="#3C8A3B"/><circle cx="14" cy="13" r="9" fill="#5DB35A"/><path d="M8 10 a7 7 0 0 1 9 -3" stroke="#8ED48A" stroke-width="2.5" fill="none" stroke-linecap="round"/></pattern></defs>
+<rect width="1600" height="440" fill="url(#njSky)"/>
+<circle cx="1110" cy="262" r="96" fill="#E8412C"/>
+<g fill="#FFFFFF" stroke="#05131D" stroke-width="3"><path d="M520 120 q0 -26 26 -26 q8 -22 34 -18 q20 -18 42 0 q28 -4 30 22 q22 6 14 28 h-140 q-14 -2 -6 -6z" transform="translate(700 0)"/><path d="M1000 84 q0 -20 22 -20 q8 -18 30 -14 q18 -12 34 2 q24 0 22 22 h-104 q-8 -4 -4 -10z" transform="translate(-480 196)"/></g>
+<g transform="translate(40 0)">
+<path d="M300 420 L470 250 L540 300 L640 200 L760 330 L820 280 L900 420 Z" fill="#C3BEE0"/>
+<path d="M560 420 L700 260 L760 300 L860 134 L960 290 L1020 250 L1180 380 L1180 420 Z" fill="#8F9FCB" stroke="#05131D" stroke-width="3" stroke-linejoin="round"/>
+<path d="M840 170 L860 134 L882 172 L870 166 L860 178 L850 166 Z" fill="#FFFFFF" stroke="#05131D" stroke-width="2.5" stroke-linejoin="round"/>
+<g stroke="#05131D" stroke-width="3" stroke-linejoin="round"><rect x="836" y="116" width="48" height="26" fill="#F4F4F4"/><path d="M816 120 Q860 108 904 120 L894 108 Q860 98 826 108 Z" fill="#C91A09"/><rect x="844" y="88" width="32" height="20" fill="#F4F4F4"/><path d="M826 92 Q860 80 894 92 L884 80 Q860 70 836 80 Z" fill="#C91A09"/><rect x="851" y="62" width="18" height="16" fill="#F4F4F4"/><path d="M838 66 Q860 56 882 66 L874 56 Q860 48 846 56 Z" fill="#C91A09"/><line x1="860" y1="48" x2="860" y2="30"/><circle cx="860" cy="28" r="5" fill="#F2CD37"/></g>
+<rect x="854" y="126" width="12" height="16" fill="#05131D"/></g>
+<g stroke="#05131D" stroke-width="3" transform="translate(300 70)"><rect x="20" y="150" width="20" height="280" fill="#7CC45A"/><rect x="58" y="210" width="16" height="220" fill="#5DA846"/><line x1="20" y1="230" x2="40" y2="230"/><line x1="20" y1="310" x2="40" y2="310"/><line x1="58" y1="280" x2="74" y2="280"/><line x1="58" y1="350" x2="74" y2="350"/><path d="M40 230 q30 -20 54 -10 q-28 16 -54 10z" fill="#7CC45A"/><path d="M58 280 q-28 -22 -46 -6 q22 14 46 6z" fill="#5DA846"/></g>
+<rect y="396" width="1600" height="8" fill="#2F7A33"/><rect y="404" width="1600" height="36" fill="#4B9F4A"/><rect y="404" width="1600" height="36" fill="url(#njStud)"/>`),
+  space:() => SCENE_SVG(`<defs><radialGradient id="spNeb1" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#6B3FB8" stop-opacity=".55"/><stop offset="1" stop-color="#6B3FB8" stop-opacity="0"/></radialGradient>
+<radialGradient id="spNeb2" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FF8A2A" stop-opacity=".4"/><stop offset="1" stop-color="#FF8A2A" stop-opacity="0"/></radialGradient>
+<radialGradient id="spAtmo" cx=".5" cy=".5" r=".5"><stop offset=".78" stop-color="#5FB4FF" stop-opacity=".7"/><stop offset="1" stop-color="#5FB4FF" stop-opacity="0"/></radialGradient>
+<radialGradient id="spSun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFF3B0"/><stop offset=".55" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF8A2A"/></radialGradient>
+<radialGradient id="spHalo" cx=".5" cy=".5" r=".5"><stop offset=".5" stop-color="#FFB13C" stop-opacity=".6"/><stop offset="1" stop-color="#FF8A2A" stop-opacity="0"/></radialGradient>
+<clipPath id="spEarthC"><circle cx="1012" cy="214" r="146"/></clipPath><clipPath id="spSatC"><circle cx="566" cy="108" r="42"/></clipPath><clipPath id="spMoonC"><circle cx="836" cy="86" r="34"/></clipPath><clipPath id="spMarsC"><circle cx="590" cy="336" r="22"/></clipPath></defs>
+<ellipse cx="300" cy="360" rx="380" ry="150" fill="url(#spNeb1)"/><ellipse cx="1060" cy="330" rx="340" ry="120" fill="url(#spNeb1)" opacity=".6"/><ellipse cx="1440" cy="440" rx="380" ry="220" fill="url(#spNeb2)"/>
+<g fill="#fff"><path d="M640 60 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z"/><path d="M1180 210 l1.5 5 5 1.5 -5 1.5 -1.5 5 -1.5 -5 -5 -1.5 5 -1.5z"/><path d="M420 150 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z" opacity=".8"/></g>
+<circle cx="1470" cy="470" r="230" fill="url(#spHalo)"/><circle cx="1470" cy="470" r="150" fill="url(#spSun)"/>
+<g stroke="#8A3B0A" stroke-width="5" fill="none" stroke-linecap="round"><path d="M1400 392 q14 10 28 0"/><path d="M1476 382 q14 10 28 0"/></g>
+<g transform="translate(205 216) scale(.548)">
+<circle cx="1012" cy="214" r="168" fill="url(#spAtmo)"/><circle cx="1012" cy="214" r="146" fill="#2E7BEA"/>
+<g clip-path="url(#spEarthC)"><path d="M880 120 q40 -30 80 -10 q20 30 -10 50 q-30 30 -20 70 q-30 20 -50 -10 q-20 -50 0 -100z" fill="#4FB35A"/><path d="M930 120 q20 -10 30 10 q-10 20 -30 10z" fill="#C9A36A"/><path d="M1040 90 q50 -10 80 30 q-10 30 -40 30 q-10 40 -40 60 q-30 -20 -20 -60 q-10 -40 20 -60z" fill="#4FB35A"/><path d="M990 290 q40 -10 60 20 q-10 40 -50 50 q-30 -30 -10 -70z" fill="#4FB35A"/><path d="M880 80 q60 -20 120 0 q-40 16 -120 0z" fill="#FFFFFF" opacity=".75"/><path d="M940 250 q40 -10 80 6 q-40 14 -80 -6z" fill="#FFFFFF" opacity=".6"/><circle cx="1100" cy="250" r="160" fill="#06103A" opacity=".38"/></g>
+<circle cx="1012" cy="214" r="146" fill="none" stroke="#9FD3FF" stroke-width="3" opacity=".6"/>
+<ellipse cx="962" cy="190" rx="20" ry="26" fill="#FFFFFF" stroke="#14122A" stroke-width="5"/><ellipse cx="1016" cy="182" rx="20" ry="26" fill="#FFFFFF" stroke="#14122A" stroke-width="5"/><circle cx="968" cy="196" r="7" fill="#14122A"/><circle cx="1022" cy="188" r="7" fill="#14122A"/>
+<path d="M962 232 Q994 220 1030 226 Q1042 270 1002 288 Q964 282 962 232 Z" fill="#7A1E1E" stroke="#14122A" stroke-width="5" stroke-linejoin="round"/><path d="M980 270 Q1002 258 1022 270 Q1006 284 984 278 Z" fill="#E0605A"/></g>
+<g transform="translate(-506 150)"><circle cx="836" cy="86" r="34" fill="#C9C6C0"/><g clip-path="url(#spMoonC)"><circle cx="850" cy="74" r="7" fill="#A9A59D"/><circle cx="822" cy="104" r="5" fill="#A9A59D"/><circle cx="866" cy="100" r="36" fill="#06103A" opacity=".25"/></g><circle cx="836" cy="86" r="34" fill="none" stroke="#14122A" stroke-width="2.5"/><ellipse cx="826" cy="80" rx="7" ry="9" fill="#fff" stroke="#14122A" stroke-width="2.5"/><ellipse cx="846" cy="80" rx="7" ry="9" fill="#fff" stroke="#14122A" stroke-width="2.5"/><circle cx="827" cy="82" r="2.5" fill="#14122A"/><circle cx="847" cy="82" r="2.5" fill="#14122A"/><ellipse cx="837" cy="100" rx="5" ry="6" fill="#7A1E1E" stroke="#14122A" stroke-width="2.5"/></g>
+<g transform="translate(664 172)"><g transform="rotate(-12 566 108)"><path d="M490 108 A76 18 0 0 1 642 108" fill="none" stroke="#D8C49A" stroke-width="10" opacity=".9"/></g><circle cx="566" cy="108" r="42" fill="#E3CB98"/><g clip-path="url(#spSatC)"><rect x="520" y="86" width="100" height="7" fill="#CDB07A"/><rect x="520" y="104" width="100" height="5" fill="#D6BD88"/><rect x="520" y="120" width="100" height="8" fill="#C4A46E"/><circle cx="596" cy="126" r="46" fill="#06103A" opacity=".3"/></g><circle cx="566" cy="108" r="42" fill="none" stroke="#14122A" stroke-width="2.5"/><g transform="rotate(-12 566 108)"><path d="M642 108 A76 18 0 0 1 490 108" fill="none" stroke="#E8D7AE" stroke-width="10"/><path d="M642 108 A76 18 0 0 1 490 108" fill="none" stroke="#B59E70" stroke-width="2"/></g><ellipse cx="552" cy="98" rx="8" ry="10" fill="#fff" stroke="#14122A" stroke-width="2.5"/><ellipse cx="576" cy="96" rx="8" ry="10" fill="#fff" stroke="#14122A" stroke-width="2.5"/><circle cx="553" cy="100" r="2.8" fill="#14122A"/><circle cx="577" cy="98" r="2.8" fill="#14122A"/><path d="M556 120 Q566 114 578 120" stroke="#14122A" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+<g transform="translate(400 -60)"><circle cx="590" cy="336" r="22" fill="#E0603A"/><g clip-path="url(#spMarsC)"><circle cx="582" cy="328" r="5" fill="#B9452A"/><circle cx="604" cy="346" r="24" fill="#06103A" opacity=".3"/></g><circle cx="590" cy="336" r="22" fill="none" stroke="#14122A" stroke-width="2.5"/><ellipse cx="583" cy="333" rx="5" ry="6.5" fill="#fff" stroke="#14122A" stroke-width="2"/><ellipse cx="597" cy="333" rx="5" ry="6.5" fill="#fff" stroke="#14122A" stroke-width="2"/><circle cx="584" cy="334" r="2" fill="#14122A"/><circle cx="598" cy="334" r="2" fill="#14122A"/><path d="M585 344 Q590 348 596 344" stroke="#14122A" stroke-width="2" fill="none" stroke-linecap="round"/></g>
+<g transform="translate(520 262) rotate(64)"><g fill="#C9C2B4" stroke="#14122A" stroke-width="2"><circle cx="-6" cy="58" r="7"/><circle cx="6" cy="70" r="9"/><circle cx="-8" cy="78" r="6"/><circle cx="12" cy="86" r="5"/></g><path d="M-10 34 L0 56 L10 34 Z" fill="#FF8A2A"/><path d="M-5 34 L0 46 L5 34 Z" fill="#FFE07A"/><path d="M-14 -24 Q-14 -50 0 -64 Q14 -50 14 -24 L14 30 L-14 30 Z" fill="#CDB892" stroke="#14122A" stroke-width="3" stroke-linejoin="round"/><g stroke="#8E7A56" stroke-width="2"><line x1="-14" y1="-10" x2="14" y2="-10"/><line x1="-14" y1="10" x2="14" y2="10"/></g><circle cx="0" cy="-30" r="6" fill="#7FC8FF" stroke="#14122A" stroke-width="2.5"/><path d="M-14 10 L-26 32 L-14 30 Z M14 10 L26 32 L14 30 Z" fill="#9A7E52" stroke="#14122A" stroke-width="2.5" stroke-linejoin="round"/></g>`),
+  futurama:() => SCENE_SVG(`<defs><linearGradient id="fuSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78CFC2"/><stop offset=".6" stop-color="#F4E8C6"/><stop offset="1" stop-color="#F6B59A"/></linearGradient></defs>
+<rect width="1600" height="440" fill="url(#fuSky)"/>
+<circle cx="440" cy="120" r="32" fill="#F6B59A" stroke="#1E1A1A" stroke-width="2.5"/><path d="M418 110 q20 -8 42 4" stroke="#F9CFB9" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M770 268 Q850 236 940 240" stroke="#FFFFFF" stroke-width="12" fill="none" stroke-linecap="round" opacity=".75"/>
+<g fill="#FFFFFF" stroke="#1E1A1A" stroke-width="2.5"><circle cx="790" cy="264" r="10"/><circle cx="814" cy="256" r="7"/><circle cx="770" cy="272" r="6"/></g>
+<g transform="translate(1030 236) rotate(-8)" stroke="#1E1A1A" stroke-width="3" stroke-linejoin="round"><path d="M-62 -6 L-74 -30 L-46 -12 Z" fill="#D9483B"/><path d="M-62 10 L-78 30 L-44 14 Z" fill="#D9483B"/><path d="M-70 -14 Q-80 0 -70 14 L40 14 Q86 10 92 0 Q86 -12 40 -16 Z" fill="#6CC26A"/><path d="M40 -16 Q86 -12 92 0 L40 0 Z" fill="#9BDB8F" stroke-width="2"/><ellipse cx="44" cy="-4" rx="18" ry="9" fill="#BFF0F0"/><path d="M-74 -8 L-96 0 L-74 8 Z" fill="#FFD447"/><line x1="-30" y1="-15" x2="-30" y2="13" stroke-width="2"/><line x1="0" y1="-16" x2="0" y2="14" stroke-width="2"/></g>
+<g transform="translate(210 -14)">
+<g stroke="#1E1A1A" stroke-width="3" stroke-linejoin="round"><rect x="20" y="330" width="90" height="100" fill="#A9E5C9"/><path d="M20 330 A45 34 0 0 1 110 330 Z" fill="#BFF0F0"/><rect x="128" y="300" width="74" height="130" fill="#F49B7E"/><line x1="165" y1="300" x2="165" y2="266"/><circle cx="165" cy="262" r="6" fill="#D9483B"/><rect x="218" y="352" width="70" height="78" fill="#F4E3B8"/><rect x="452" y="250" width="50" height="180" fill="#B9A6E0"/><ellipse cx="477" cy="262" rx="58" ry="16" fill="#F4E3B8"/><ellipse cx="477" cy="256" rx="30" ry="12" fill="#BFF0F0"/><rect x="520" y="300" width="90" height="130" fill="#F4E3B8"/><path d="M520 300 A45 40 0 0 1 610 300 Z" fill="#F49B7E"/><rect x="626" y="262" width="44" height="168" fill="#A9E5C9"/><circle cx="648" cy="250" r="16" fill="#F49B7E"/><rect x="1000" y="236" width="88" height="194" fill="#F49B7E"/><path d="M1000 236 L1044 196 L1088 236 Z" fill="#B9A6E0"/><rect x="1100" y="310" width="80" height="120" fill="#B9A6E0"/></g>
+<g fill="#FFF3B0" stroke="#1E1A1A" stroke-width="2"><rect x="40" y="356" width="16" height="16"/><rect x="74" y="356" width="16" height="16"/><rect x="40" y="388" width="16" height="16"/><rect x="146" y="320" width="14" height="18"/><rect x="172" y="320" width="14" height="18"/><rect x="146" y="352" width="14" height="18"/><rect x="172" y="384" width="14" height="18"/><rect x="466" y="290" width="22" height="14"/><rect x="466" y="320" width="22" height="14"/><rect x="466" y="350" width="22" height="14"/><rect x="540" y="326" width="16" height="16"/><rect x="574" y="326" width="16" height="16"/><rect x="540" y="360" width="16" height="16"/><rect x="1018" y="260" width="16" height="18"/><rect x="1052" y="260" width="16" height="18"/><rect x="1018" y="298" width="16" height="18"/><rect x="1052" y="336" width="16" height="18"/></g>
+<g fill="none" stroke-linecap="round"><path d="M202 330 C 300 250, 380 300, 452 300" stroke="#1E1A1A" stroke-width="22"/><path d="M202 330 C 300 250, 380 300, 452 300" stroke="#D6F4F0" stroke-width="15"/><path d="M206 322 C 300 246, 380 294, 450 292" stroke="#FFFFFF" stroke-width="3"/><path d="M670 300 C 780 360, 900 200, 1000 270" stroke="#1E1A1A" stroke-width="22"/><path d="M670 300 C 780 360, 900 200, 1000 270" stroke="#D6F4F0" stroke-width="15"/><path d="M672 292 C 780 352, 900 192, 998 262" stroke="#FFFFFF" stroke-width="3"/></g></g>
+<rect y="418" width="1600" height="22" fill="#ECE8F4"/><rect y="410" width="1600" height="10" fill="#B9B2CF" stroke="#1E1A1A" stroke-width="3"/>`)
+};
+
+/* ---------- Корешок: one character, a skin per theme (viewBox 280×400 unless noted) ---------- */
+const KOR_ARM = (ink, sleeve) => `<path d="M 182,196 Q 208,186 224,169 Q 232,155 228,141" stroke="${ink}" stroke-width="22" stroke-linecap="round" fill="none"/><path d="M 182,196 Q 208,186 224,169 Q 232,155 228,141" stroke="${sleeve}" stroke-width="15" stroke-linecap="round" fill="none"/>`;
+const KOR_BODY = (ink, c) => `<path d="M 176,390 L 244,390 L 248,358 L 180,358 Z" fill="${c[0]}" stroke="${ink}" stroke-width="3.2" stroke-linejoin="round"/>
+<path d="M 160,360 L 228,360 L 224,328 L 156,328 Z" fill="${c[1]}" stroke="${ink}" stroke-width="3.2" stroke-linejoin="round"/>
+<path d="M 146,330 L 214,330 L 212,298 L 144,298 Z" fill="${c[2]}" stroke="${ink}" stroke-width="3.2" stroke-linejoin="round"/>
+<path d="M 134,300 L 202,300 L 196,268 L 128,268 Z" fill="${c[3]}" stroke="${ink}" stroke-width="3.2" stroke-linejoin="round"/>
+<path d="M 120,270 L 188,270 L 180,239 L 112,239 Z" fill="${c[4]}" stroke="${ink}" stroke-width="3.2" stroke-linejoin="round"/>
+<path d="M 116,241 L 172,241 L 164,212 L 108,212 Z" fill="${c[5]}" stroke="${ink}" stroke-width="3.2" stroke-linejoin="round"/>`;
+const KORESHOK = {
+  book:{vb:'0 0 280 400', svg:() => { const k = '#2B2118';
+    return KOR_BODY(k, ['#2F5D4E', '#8E2F27', '#283E66', '#B9862F', '#6B3550', '#2F5D4E']) + `
+<g stroke="#E0C27A" stroke-width="2"><line x1="186" y1="366" x2="240" y2="366"/><line x1="186" y1="382" x2="240" y2="382"/><line x1="166" y1="336" x2="220" y2="336"/><line x1="166" y1="352" x2="220" y2="352"/><line x1="152" y1="306" x2="208" y2="306"/><line x1="152" y1="322" x2="208" y2="322"/><line x1="138" y1="276" x2="194" y2="276"/><line x1="138" y1="292" x2="194" y2="292"/><line x1="122" y1="247" x2="180" y2="247"/><line x1="122" y1="262" x2="182" y2="262"/></g>
+<path d="M 82,202 L 186,202 L 190,220 L 138,215 L 80,220 Z" fill="#9B2C22" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<path d="M 126,216 L 118,262 L 128,254 L 134,264 L 140,216 Z" fill="#9B2C22" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<ellipse cx="136" cy="152" rx="60" ry="54" fill="#F2E2C0" stroke="${k}" stroke-width="3.5"/>
+<path d="M 116,100 Q 104,72 98,50" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M 96,50 Q 94,38 98,30 Q 102,38 102,50 Z" fill="#2F5D4E" stroke="${k}" stroke-width="2.5"/>
+<path d="M 156,100 Q 168,72 174,50" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M 172,50 Q 170,38 174,30 Q 178,38 178,50 Z" fill="#9B2C22" stroke="${k}" stroke-width="2.5"/>
+<circle cx="112" cy="153" r="10" fill="${k}"/><circle cx="116" cy="149" r="3.5" fill="#fff"/><circle cx="154" cy="153" r="10" fill="${k}"/><circle cx="158" cy="149" r="3.5" fill="#fff"/>
+<circle cx="112" cy="152" r="19" fill="none" stroke="${k}" stroke-width="3"/><circle cx="156" cy="152" r="19" fill="none" stroke="${k}" stroke-width="3"/><path d="M 131,150 Q 134,146 137,150" stroke="${k}" stroke-width="3" fill="none"/>
+<path d="M 95 126 Q 112 118 129 126" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M 141 126 Q 158 118 175 127" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/>
+<path d="M 118 182 Q 136 192 154 180" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/>` + KOR_ARM(k, '#F2E2C0') + `
+<g transform="rotate(12,250,148)"><rect x="224" y="106" width="54" height="70" rx="3" fill="#283E66" stroke="${k}" stroke-width="3"/><rect x="224" y="106" width="8" height="70" fill="#1C2C4A" stroke="${k}" stroke-width="3"/><rect x="240" y="122" width="28" height="3" fill="#E0C27A"/><rect x="244" y="130" width="20" height="2" fill="#E0C27A"/><circle cx="254" cy="152" r="9" fill="none" stroke="#E0C27A" stroke-width="2"/></g>
+<circle cx="228" cy="141" r="11" fill="#F2E2C0" stroke="${k}" stroke-width="3"/>`; }},
+  gravity:{vb:'0 0 280 400', svg:() => { const k = '#2B1A10';
+    return KOR_BODY(k, ['#3F7A5E', '#E86A92', '#2C4A7A', '#E9A23B', '#7A2B2B', '#3F7A5E']) + `
+<path d="M 82,202 L 186,202 L 190,220 L 138,215 L 80,220 Z" fill="#E9813A" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<path d="M 134,217 L 130,240 L 138,234 L 146,240 L 142,217 Z" fill="#E9813A" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<ellipse cx="136" cy="152" rx="60" ry="54" fill="#F2E0BC" stroke="${k}" stroke-width="3.5"/>
+<rect x="95" y="140" width="35" height="25" rx="5" fill="none" stroke="${k}" stroke-width="3"/><rect x="136" y="140" width="35" height="25" rx="5" fill="none" stroke="${k}" stroke-width="3"/><line x1="130" y1="151" x2="136" y2="151" stroke="${k}" stroke-width="3"/>
+<circle cx="113" cy="154" r="9" fill="${k}"/><circle cx="116" cy="151" r="3.5" fill="#fff"/><circle cx="154" cy="154" r="9" fill="${k}"/><circle cx="157" cy="151" r="3.5" fill="#fff"/>
+<path d="M 116 180 Q 128 190 150 178" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/>
+<path d="M 76,134 C 74,92 104,74 136,74 C 168,74 198,92 196,134 Z" fill="#23395F" stroke="${k}" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M 104,132 C 104,98 118,82 136,82 C 154,82 168,98 168,132 Z" fill="#F7F3EA" stroke="${k}" stroke-width="2.5"/>
+<path d="M136 88 L145 102 L141 102 L149 115 L144 115 L152 127 L120 127 L128 115 L123 115 L131 102 L127 102 Z" fill="#2E6A8E"/>
+<circle cx="136" cy="74" r="5" fill="#23395F" stroke="${k}" stroke-width="2.5"/>
+<path d="M 70,132 Q 136,150 202,132 L 206,140 Q 136,164 66,140 Z" fill="#23395F" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<path d="M 186,100 Q 204,78 214,58" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M 212,58 Q 210,46 214,38 Q 218,46 218,58 Z" fill="#E9813A" stroke="${k}" stroke-width="2.5"/>` + KOR_ARM(k, '#F2E0BC') + `
+<g transform="rotate(10,252,146)"><rect x="218" y="96" width="64" height="86" rx="4" fill="#7A2B2B" stroke="${k}" stroke-width="3"/><path d="M218 96 h12 v86 h-12" fill="#5E1E1E" stroke="${k}" stroke-width="3"/>
+<g fill="none" stroke="#E2B65A" stroke-width="3" stroke-linecap="round"><circle cx="256" cy="146" r="9" fill="#E2B65A" stroke="none"/><line x1="247" y1="140" x2="241" y2="128"/><line x1="251" y1="137" x2="248" y2="122"/><line x1="256" y1="136" x2="256" y2="120"/><line x1="261" y1="137" x2="264" y2="122"/><line x1="265" y1="140" x2="271" y2="128"/><line x1="265" y1="150" x2="273" y2="148"/></g></g>
+<circle cx="228" cy="141" r="11" fill="#F2E0BC" stroke="${k}" stroke-width="3"/>`; }},
+  ninjago:{vb:'0 0 280 400', svg:() => { const k = '#05131D';
+    return `<g transform="rotate(-38 92 190)"><rect x="86" y="120" width="12" height="62" rx="3" fill="${k}"/><ellipse cx="92" cy="186" rx="16" ry="6" fill="#F2CD37" stroke="${k}" stroke-width="3"/></g>` + KOR_BODY(k, ['#00852B', '#F4F4F4', '#1B2A34', '#0055BF', '#C91A09', '#00852B']) + `
+<g fill="none" stroke-width="3" stroke="${k}"><circle cx="198" cy="374" r="6"/><circle cx="222" cy="374" r="6"/><circle cx="180" cy="344" r="6"/><circle cx="204" cy="344" r="6"/><circle cx="152" cy="284" r="6"/><circle cx="176" cy="284" r="6"/><circle cx="138" cy="255" r="6"/><circle cx="162" cy="255" r="6"/></g>
+<g fill="none" stroke-width="3" stroke="#F4F4F4"><circle cx="166" cy="314" r="6"/><circle cx="190" cy="314" r="6"/></g>
+<path d="M 82,202 L 186,202 L 190,220 L 138,215 L 80,220 Z" fill="#CC9C3D" stroke="${k}" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M 82,146 Q 54,136 30,146 L 36,158 Q 58,150 80,160 Z" fill="#00852B" stroke="${k}" stroke-width="3" stroke-linejoin="round"/><path d="M 80,156 Q 58,166 44,188 L 56,192 Q 66,174 84,166 Z" fill="#00852B" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<rect x="118" y="86" width="36" height="18" fill="#00852B" stroke="${k}" stroke-width="3.5"/><ellipse cx="136" cy="86" rx="18" ry="6" fill="#2BA84A" stroke="${k}" stroke-width="3.5"/>
+<ellipse cx="136" cy="152" rx="60" ry="54" fill="#00852B" stroke="${k}" stroke-width="4"/>
+<path d="M 88,136 L 134,146 L 184,136 Q 194,156 184,178 L 88,178 Q 78,156 88,136 Z" fill="#F2E0BC" stroke="${k}" stroke-width="3.5" stroke-linejoin="round"/>
+<rect x="94" y="148" width="34" height="22" rx="4" fill="none" stroke="${k}" stroke-width="3"/><rect x="140" y="148" width="34" height="22" rx="4" fill="none" stroke="${k}" stroke-width="3"/><line x1="128" y1="158" x2="140" y2="158" stroke="${k}" stroke-width="3"/>
+<circle cx="113" cy="160" r="8" fill="${k}"/><circle cx="116" cy="157" r="3" fill="#fff"/><circle cx="156" cy="160" r="8" fill="${k}"/><circle cx="159" cy="157" r="3" fill="#fff"/>
+<path d="M136 106 L150 120 L136 134 L122 120 Z" fill="#F2CD37" stroke="${k}" stroke-width="3" stroke-linejoin="round"/><text x="136" y="126" text-anchor="middle" font-family="serif" font-weight="700" font-size="15" fill="#C91A09">忍</text>` + KOR_ARM(k, '#00852B') + `
+<g transform="rotate(8 252 140)"><rect x="230" y="96" width="44" height="86" fill="#FCEBCB" stroke="${k}" stroke-width="3"/><g stroke="#C91A09" stroke-width="3" stroke-linecap="round"><line x1="242" y1="112" x2="262" y2="112"/><line x1="242" y1="126" x2="256" y2="126"/><line x1="242" y1="140" x2="262" y2="140"/></g><rect x="224" y="86" width="56" height="12" rx="6" fill="#C91A09" stroke="${k}" stroke-width="3"/><rect x="224" y="180" width="56" height="12" rx="6" fill="#C91A09" stroke="${k}" stroke-width="3"/></g>
+<circle cx="228" cy="141" r="11" fill="#00852B" stroke="${k}" stroke-width="3"/>`; }},
+  space:{vb:'-20 0 320 400', svg:() => { const k = '#14122A';
+    const ring = (d, c) => `<g transform="rotate(-16 180 300)"><path d="${d}" fill="none" stroke="${k}" stroke-width="15"/><path d="${d}" fill="none" stroke="${c}" stroke-width="9"/></g>`;
+    return ring('M 66,300 A 114 28 0 0 1 294,300', '#D8C49A') + KOR_BODY(k, ['#D9A66E', '#E0603A', '#2E7BEA', '#E8C47A', '#A9A29A', '#3A2A7A']) + ring('M 294,300 A 114 28 0 0 1 66,300', '#E8D7AE') + `
+<ellipse cx="136" cy="152" rx="60" ry="54" fill="#F2E0BC" stroke="${k}" stroke-width="3.5"/>
+<path d="M 118,104 Q 110,92 108,80" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/><circle cx="108" cy="76" r="7" fill="#FFC93C" stroke="${k}" stroke-width="2.5"/>
+<path d="M 154,104 Q 162,92 164,80" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/><circle cx="164" cy="76" r="7" fill="#5FB4FF" stroke="${k}" stroke-width="2.5"/>
+<ellipse cx="112" cy="146" rx="15" ry="19" fill="#fff" stroke="${k}" stroke-width="3.5"/><ellipse cx="158" cy="146" rx="15" ry="19" fill="#fff" stroke="${k}" stroke-width="3.5"/>
+<circle cx="117" cy="150" r="5" fill="${k}"/><circle cx="163" cy="150" r="5" fill="${k}"/>
+<rect x="92" y="130" width="40" height="34" rx="9" fill="none" stroke="${k}" stroke-width="3"/><rect x="138" y="130" width="40" height="34" rx="9" fill="none" stroke="${k}" stroke-width="3"/><line x1="132" y1="146" x2="138" y2="146" stroke="${k}" stroke-width="3"/>
+<path d="M 114 176 Q 136 172 160 176 Q 156 200 136 202 Q 116 200 114 176 Z" fill="#7A1E1E" stroke="${k}" stroke-width="3.5" stroke-linejoin="round"/><path d="M 124 192 Q 136 186 150 192 Q 138 200 124 192 Z" fill="#E0605A"/>
+<circle cx="136" cy="146" r="82" fill="rgba(160,210,255,.14)" stroke="#BFE2FF" stroke-width="3.5"/>
+<path d="M 82,110 A 66 66 0 0 1 130,74" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round"/>
+<ellipse cx="136" cy="222" rx="66" ry="14" fill="#D9DEE8" stroke="${k}" stroke-width="3.5"/>
+<path d="M 192,214 Q 214,196 226,174 Q 232,158 228,144" stroke="${k}" stroke-width="22" stroke-linecap="round" fill="none"/><path d="M 192,214 Q 214,196 226,174 Q 232,158 228,144" stroke="#D9DEE8" stroke-width="15" stroke-linecap="round" fill="none"/>
+<g transform="rotate(14 252 140)"><rect x="222" y="98" width="58" height="76" rx="6" fill="#1B2C78" stroke="${k}" stroke-width="3"/><path d="M256 116 l4 9 10 1 -8 6 3 10 -9 -6 -9 6 3 -10 -8 -6 10 -1z" fill="#FFC93C"/></g>
+<circle cx="228" cy="142" r="12" fill="#D9DEE8" stroke="${k}" stroke-width="3"/>`; }},
+  futurama:{vb:'0 0 280 400', svg:() => { const k = '#1E1A1A';
+    return KOR_BODY(k, ['#A8B5BF', '#E8B23A', '#7E3FA6', '#78CFC2', '#D9483B', '#FFFFFF']) + `
+<path d="M 80,200 L 122,206 L 136,236 L 112,226 L 78,224 Z" fill="#D9483B" stroke="${k}" stroke-width="3" stroke-linejoin="round"/><path d="M 192,200 L 150,206 L 136,236 L 160,226 L 194,224 Z" fill="#D9483B" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<ellipse cx="136" cy="152" rx="60" ry="54" fill="#F2E0BC" stroke="${k}" stroke-width="3"/>
+<circle cx="112" cy="150" r="16" fill="#fff" stroke="${k}" stroke-width="2.5"/><circle cx="158" cy="150" r="16" fill="#fff" stroke="${k}" stroke-width="2.5"/><circle cx="116" cy="152" r="3.5" fill="${k}"/><circle cx="162" cy="152" r="3.5" fill="${k}"/>
+<circle cx="112" cy="150" r="20" fill="none" stroke="${k}" stroke-width="3"/><circle cx="158" cy="150" r="20" fill="none" stroke="${k}" stroke-width="3"/>
+<path d="M 108 180 Q 136 196 168 178" stroke="${k}" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M 128 186 L 128 194 L 140 194 L 140 187" fill="#fff" stroke="${k}" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M 78,132 C 76,92 104,76 136,76 C 168,76 196,92 194,132 Z" fill="#5BB86A" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="136" cy="110" r="14" fill="#F4E3B8" stroke="${k}" stroke-width="2.5"/><path d="M128 116 L130 108 Q136 100 144 102 Q144 110 136 114 Z" fill="#D9483B" stroke="${k}" stroke-width="1.8" stroke-linejoin="round"/>
+<path d="M 72,130 Q 136,146 200,130 L 204,138 Q 136,158 68,138 Z" fill="#3E9A50" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>
+<rect x="132" y="48" width="8" height="30" fill="#A8B5BF" stroke="${k}" stroke-width="2.5"/><circle cx="136" cy="42" r="9" fill="#A8B5BF" stroke="${k}" stroke-width="2.5"/>` + KOR_ARM(k, '#D9483B') + `
+<g transform="rotate(10 252 146)"><rect x="218" y="100" width="66" height="84" rx="4" fill="#D9A86C" stroke="${k}" stroke-width="3"/><line x1="251" y1="100" x2="251" y2="184" stroke="#7A4A26" stroke-width="3"/><line x1="218" y1="142" x2="284" y2="142" stroke="#7A4A26" stroke-width="3"/></g>
+<circle cx="228" cy="141" r="11" fill="#F2E0BC" stroke="${k}" stroke-width="3"/>`; }}
+};
+const koreshok = (skin, cls = 'kor') => { const s = KORESHOK[skin]; return s ? `<svg class="${cls}" viewBox="${s.vb}" aria-hidden="true">${s.svg()}</svg>` : ''; };
 const FONT_SIZES = [18, 20, 23, 26];
 // Words a child reads in 30 comfortable minutes, by age
 const WORDS_PER_SESSION = age => age <= 7 ? 800 : age <= 9 ? 1200 : age <= 11 ? 1600 : 2000;
@@ -1244,8 +1687,8 @@ function scrHome(){
       : `<div class="empty"><b>Словарик пока пустой</b><span>Нажимай в книге на непонятные слова — они будут собираться здесь.</span></div>`;
   }
   return `<div class="home">
-    <header class="khead">${ava(k)}<div class="grow"><h1 class="display">Привет, ${esc(k.name)}!</h1></div>
-      <button class="btn alt small" data-act="themeSheet">Оформление</button><button class="btn ghost small" data-act="toProfiles">Сменить читателя</button></header>
+    <header class="khead">${ava(k)}<div class="grow">${THEME_TOP[kd.theme] ? `<div class="ktop">${THEME_TOP[kd.theme](kd)}</div>` : ''}<h1 class="display">${THEME_HELLO[kd.theme] ? THEME_HELLO[kd.theme](esc(k.name)) : 'Привет, ' + esc(k.name) + '!'}</h1>${THEME_LINE[kd.theme] ? `<p class="kline">${THEME_LINE[kd.theme]}</p>` : ''}</div>
+      <div class="kacts"><button class="btn alt small" data-act="themeSheet">Оформление</button><button class="btn ghost small" data-act="toProfiles">Сменить читателя</button></div>${koreshok(kd.theme)}</header>
     <div class="toprow">${cont}
       <div class="week">${rewardStatsHTML()}<h3>На этой неделе: ${readDays} ${plural(readDays, 'день', 'дня', 'дней')} из 7</h3>
         <div class="days">${week.map(d => `<div class="day ${kd.stats.days.includes(d.s) ? 'on' : ''} ${d.today ? 'today' : ''}"><i>${kd.stats.days.includes(d.s) ? '✓' : ''}</i><span>${d.l}</span></div>`).join('')}</div>
@@ -1374,7 +1817,7 @@ function scrQuiz(){
   const cur = q.qs[q.idx], last = q.idx === q.qs.length - 1;
   return `<div class="quiz">${head}
     <div class="qdots" aria-label="Вопрос ${q.idx + 1} из ${q.qs.length}">${q.qs.map((x, i) => `<i class="${i < q.idx ? 'on' : i === q.idx ? 'cur' : ''}"></i>`).join('')}</div>
-    <div class="eyebrow">Вопрос ${q.idx + 1} из ${q.qs.length} · ошибок ${q.totalWrong || 0} из ${MAX_WRONG}</div>
+    <div class="eyebrow">Вопрос ${q.idx + 1} из ${q.qs.length} · ${(q.totalWrong || 0) > MAX_WRONG ? `ошибок ${q.totalWrong} — больше ${MAX_WRONG}` : `ошибок ${q.totalWrong || 0} из ${MAX_WRONG}`}</div>
     <h2 class="qtext">${esc(cur.q)}</h2>
     <div class="opts">${cur.options.map((o, i) => { const st = q.solved && i === cur.answer ? 'right' : q.wrong.includes(i) ? 'wrong' : ''; return `<button class="opt ${st}" data-act="answer" data-i="${i}" ${q.solved || q.wrong.includes(i) ? 'disabled' : ''}>${esc(o)}</button>`; }).join('')}</div>
     ${q.wrong.length && !q.solved ? `<div class="hint"><b>Подсказка.</b> ${esc(cur.hint || 'Загляни в главу ещё раз.')} <button class="btn small alt" data-act="backToText" style="margin-left:6px">Перечитать в книге</button></div>` : ''}
@@ -1434,9 +1877,20 @@ const SCREENS = {login:scrLogin, loading:scrLoading, setup:scrSetup, profiles:sc
 function render(){
   const kidMode = KID_SCREENS.includes(S.screen) && S.kd;
   if (kidMode) document.body.dataset.kt = S.kd.theme; else delete document.body.dataset.kt;
+  const scene = kidMode && S.screen === 'home' && SCENES[S.kd.theme] ? S.kd.theme : '';
+  if (sceneEl.dataset.k !== scene){ sceneEl.dataset.k = scene; sceneEl.innerHTML = scene ? SCENES[scene]() : ''; sceneEl.style.height = ''; }
+  if (scene) document.body.dataset.scene = scene; else delete document.body.dataset.scene;
   app.innerHTML = SCREENS[S.screen]();
+  sizeScene();
   if (S.lastScreen !== S.screen){ window.scrollTo(0, 0); S.lastScreen = S.screen; }
 }
+// The scene reaches 40px under the top of the first cards, so its horizon hides behind them whatever the header height
+function sizeScene(){
+  const row = sceneEl.dataset.k && app.querySelector('.toprow');
+  if (row) sceneEl.style.height = Math.round(row.getBoundingClientRect().top + window.scrollY + 40) + 'px';
+}
+window.addEventListener('resize', sizeScene);
+document.fonts.ready.then(sizeScene);
 function go(screen){ S.screen = screen; render(); }
 
 /* ---------- sheet ---------- */
