@@ -1,0 +1,3 @@
+# Для локального запуска (npm run dev): скопируйте в .dev.vars и впишите ключ.
+# На Cloudflare ключ хранится как секрет: npx wrangler secret put OPENROUTER_API_KEY
+OPENROUTER_API_KEY=sk-or-...

@@ -3,3 +3,6 @@ data/
 .env
 *.zip
 chitalka-handover/
+backup/
+.wrangler/
+.dev.vars

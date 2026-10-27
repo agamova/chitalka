@@ -1,5 +1,8 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Читалка</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Neucha&family=Nunito:wght@400;600;700;800&family=Unbounded:wght@500;700&display=swap">
@@ -214,12 +217,20 @@ legend{font-weight:700; font-size:14px; margin-bottom:6px}
 .chest-gate-btn{display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 24px; border-radius:var(--radius); background:color-mix(in srgb,var(--gold) 14%,var(--surface)); border:1.5px solid color-mix(in srgb,var(--gold) 60%,var(--line)); font-weight:800; font-size:15px; color:var(--ink); cursor:pointer; min-height:auto}
 .chest-gate-btn svg{width:52px; height:auto; display:block; margin:0 auto}
 .chest-gate-btn:hover{background:color-mix(in srgb,var(--gold) 22%,var(--surface))}
-/* choice screen after quiz */
-.choice-wrap{display:grid; justify-items:center; gap:18px; text-align:center; padding:5vh 0}
-.choice-wrap h1{font-size:clamp(26px,5vw,38px)}
-.choice-acts{display:grid; gap:12px; width:min(400px,100%)}
-.choice-bonus{background:color-mix(in srgb,var(--gold) 18%,var(--surface)); border-radius:14px; padding:12px 18px; font-weight:700; border:1.5px solid color-mix(in srgb,var(--gold) 40%,var(--line))}
+.fire-tag{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#ff6b2b,#ff9500);color:#fff;font-weight:800;font-size:13px;padding:5px 14px;border-radius:20px;box-shadow:0 2px 10px rgba(255,107,43,.4);animation:fire-pulse 2s ease-in-out infinite}
+@keyframes fire-pulse{0%,100%{box-shadow:0 2px 10px rgba(255,107,43,.4)}50%{box-shadow:0 2px 20px rgba(255,107,43,.7),0 0 0 3px rgba(255,107,43,.2)}}
+.kstats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.kstat{background:var(--surface-2);border-radius:12px;padding:10px 12px;display:grid;gap:2px}
+.kstat b{font-size:22px;font-weight:800;line-height:1.1}
+.kstat span{font-size:13px;color:var(--muted)}
+.kstat.hot{background:linear-gradient(135deg,color-mix(in srgb,#ff6b2b 22%,var(--surface)),color-mix(in srgb,#ff9500 14%,var(--surface)))}
+.bank-badge{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--ok) 16%,var(--surface));border:1.5px solid color-mix(in srgb,var(--ok) 45%,var(--line));color:var(--ink);font-weight:800;padding:6px 16px;border-radius:99px}
+.fire-chest{filter:drop-shadow(0 0 18px rgba(255,120,40,.7))}
 
+/* kid chips on prize rows */
+.kidchips{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.kidchip{padding:3px 10px;border-radius:20px;font-size:13px;font-weight:700;border:1.5px solid var(--line);background:none;cursor:pointer;color:var(--muted);transition:all .15s}
+.kidchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 /* prizes */
 .medal{--h:200; width:56px; height:56px; border-radius:50%; flex:none; display:grid; place-items:center; color:#FFFFFF; font-family:'Unbounded','Nunito',sans-serif; font-weight:700; font-size:24px;
   background:radial-gradient(circle at 30% 30%, hsl(var(--h) 60% 58%), hsl(var(--h) 55% 36%)); box-shadow:inset 0 0 0 3px rgba(255,255,255,.35)}
@@ -236,19 +247,11 @@ legend{font-weight:700; font-size:14px; margin-bottom:6px}
 .meme .mi svg{width:180px; height:auto; margin:0 auto; display:block}
 .meme .mb{padding:6px 18px 18px; font-size:17px; font-weight:700}
 .meme .mtag{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#9AA2B3; padding-top:10px}
-.scratchbox{position:relative; width:min(440px, 100%)}
-.scratchbox .prize, .scratchbox .meme{width:100%}
-#scratch{position:absolute; inset:0; width:100%; height:100%; border-radius:24px; touch-action:none; cursor:crosshair; transition:opacity .4s}
-#scratch.gone{opacity:0; pointer-events:none}
 .three{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; width:min(560px, 100%)}
 .three .chest{width:100%}
 .three .chest[disabled]{opacity:.35}
 .others{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; font-size:14px; color:var(--muted)}
 .others span{background:var(--surface-2); border-radius:99px; padding:4px 12px}
-.luck{display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:14px}
-.luck .dots5{display:flex; gap:4px}
-.luck .dots5 i{width:12px; height:12px; border-radius:50%; background:var(--surface-2); border:2px solid var(--gold)}
-.luck .dots5 i.on{background:var(--gold)}
 .plist{display:grid; gap:10px; margin:0; padding:0; list-style:none}
 .plist li{display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:12px 14px; background:var(--surface); border:2px solid color-mix(in srgb, var(--tc) 45%, var(--line)); border-radius:14px}
 .plist .fishmini svg{width:56px; height:auto; display:block}
@@ -280,6 +283,9 @@ body[data-kt]::before{content:""; position:fixed; inset:0 0 auto; height:env(saf
 .page .tip{font-size:14px; color:var(--muted); font-weight:700; margin-bottom:22px}
 .page p.tx{font-family:var(--font-read); font-size:var(--read-size); line-height:1.65; margin:0 0 .85em; text-indent:1.4em; max-width:65ch; hyphens:auto; -webkit-hyphens:auto}
 .page p.tx:first-of-type{text-indent:0}
+.book-img{text-align:center; margin:1em 0; max-width:65ch}
+.book-img img{max-width:100%; border-radius:6px; display:inline-block}
+.book-img.blurred{filter:blur(5px); user-select:none; pointer-events:none}
 .w{cursor:pointer; border-radius:4px; transition:background .15s}
 .w:hover{background:color-mix(in srgb, var(--accent) 12%, transparent)}
 .w.seen{text-decoration:underline; text-decoration-color:color-mix(in srgb, var(--second) 70%, transparent); text-decoration-thickness:2px; text-underline-offset:4px}
@@ -398,7 +404,7 @@ const pad = n => String(n).padStart(2, '0');
 const dayStr = (d = new Date()) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 const hashStr = s => { let h = 7; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) >>> 0; return h; };
 const hue = s => hashStr(s) % 360;
-const countWords = paras => paras.reduce((n, p) => n + ((p.match(/[A-Za-zА-Яа-яЁё0-9]+/g) || []).length), 0);
+const countWords = paras => paras.reduce((n, p) => n + (typeof p === 'string' ? ((p.match(/[A-Za-zА-Яа-яЁё0-9]+/g) || []).length) : 0), 0);
 const band = age => age <= 8 ? 's' : age <= 11 ? 'm' : 'l';
 const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -483,20 +489,18 @@ const DEMO = {
 };
 
 /* ---------- prizes ---------- */
-const PRIZE_TIERS = [null,
-  {name:'Рыбка', d:'маленькая радость', base:60, grow:0},
-  {name:'Рыба покрупнее', d:'приятный приз', base:25, grow:15},
-  {name:'Большая рыба', d:'серьёзный приз', base:10, grow:15},
-  {name:'Кит', d:'джекпот', base:3, grow:9}
-];
-const PRIZE_IDEAS = [['Конфета', 1], ['Наклейка', 1], ['Мороженое', 2], ['Шоколадка', 2], ['+30 минут мультиков', 2], ['Не мыть посуду сегодня', 3], ['Выбрать, что будет на ужин', 3], ['Лечь спать на 20 минут позже', 3], ['Поход в кафе', 4]];
+const PRIZE_TYPES = {daily:'Ежедневный сундук', streak:'Огненный сундук'};
+const STREAK_DAYS = 5, MAX_WRONG = 4, MAX_BANK_PER_DAY = 2;
+const PRIZE_IDEAS = [['Конфета', 'daily'], ['Наклейка', 'daily'], ['Мороженое', 'daily'], ['Выбрать мультик', 'daily'], ['Не мыть посуду сегодня', 'daily'], ['Лечь спать на 20 минут позже', 'daily'], ['Поход в кафе', 'streak'], ['Новая книга', 'streak'], ['Поход в кино', 'streak']];
+const prizeVis = p => p.type === 'streak' ? 4 : p.type === 'daily' ? 2 : (p.tier || 2);
+const bankCfg = () => Object.assign({name:'минут игры', per:10}, S.family.bank || {});
 const FUN_FALLBACK = [
   {h:'Когда открыл сундук, а там записка', t:'«Приз уехал за мороженым. Вернётся через пару глав». Подпись: Сундук.'},
   {h:'Когда сундук тоже любит истории', t:'Он зевнул, потянулся и попросил: «Ещё одну главу, пожалуйста».'},
   {h:'Когда вместо приза выдают звание', t:'Отныне ты Почётный Перелистыватель Страниц. Звание действует до следующей главы.'},
   {h:'Когда книга считает твои главы', t:'Книга сообщает: до финала стало на одну главу ближе. Она очень этим гордится.'}
 ];
-const PRIZE_LINES = ['Сундук долго сопротивлялся, но честно отдал приз.', 'Приз проверен, упакован и ждёт тебя.', 'Глава прочитана, вопросы решены, приз заслужен.'];
+const PRIZE_LINES = ['Сундук долго сопротивлялся, но честно отдал приз.', 'Приз проверен, упакован и ждёт тебя.', 'Глава прочитана, вопросы решены, приз заслужен.', 'Сундук скрипнул, вздохнул и сказал: «Заслужено!»', 'Этот приз ждал именно тебя — и дождался.', 'Страница за страницей — и вот награда.', 'Книжные герои аплодируют. Тихо, чтобы не мешать читать.'];
 const fishSVG = t => {
   const W = '<svg viewBox="0 0 160 100" aria-hidden="true">';
   if (t === 4) return W + '<path d="M18 62 C18 34 52 22 88 26 C118 29 134 44 138 58 C150 50 156 40 154 30 C160 46 158 64 144 72 C132 86 104 92 72 90 C40 88 18 80 18 62 Z" fill="#3E6FB0"/><path d="M28 70 C50 84 104 88 132 74 C112 92 54 94 28 70 Z" fill="#CFE0F2"/><circle cx="44" cy="54" r="4" fill="#132238"/><circle cx="45.5" cy="52.5" r="1.3" fill="#fff"/><path d="M36 66 q10 6 20 0" stroke="#132238" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M78 26 C74 12 66 8 60 10 M78 26 C80 12 88 6 96 8 M78 26 C78 14 78 8 78 4" stroke="#7FB3FF" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
@@ -514,11 +518,6 @@ const giftSVG = t => {
 
 /* ---------- demo book: heroes, summaries and animated scenes (original art) ---------- */
 
-const DEMO_SUM = [
-  'Варя получает письмо от деда Ефима, смотрителя Совиного маяка, и едет к нему на лето. Последний отрезок пути её везёт на телеге рыбак Степан. Дед встречает её и обещает показать фонарь. Ночью Варя смотрит, как луч маяка ходит по стене, а рыжий кот Сухарь укладывается у неё в ногах.',
-  'Дед показывает Варе линзу маяка и объясняет, что маяк узнают по своему сигналу: две вспышки, потом темнота. Линзу вертит часовой механизм с гирей, его нужно заводить на вахте. Рыбак Степан тревожится: его сын Митя ушёл на баркасе и не вернулся. Начинается сильный шторм, а в полночь механизм ломается, и линза останавливается.',
-  'Пружина лопнула, и до утра механизм не починить. Варя придумывает вертеть линзу руками и считать вслух. Всю ночь они с дедом по очереди крутят ручку, а Сухарь сидит рядом. Под утро баркас Мити благополучно возвращается к причалу, рыбаки машут маяку. Варя засыпает на ступеньке, а дед записывает в журнал, что огонь держали вручную вместе с помощницей.'
-];
 // (scenes removed)
 
 /* ---------- plot-twist reactions: Корешок, the reading companion (original art) ---------- */
@@ -528,26 +527,38 @@ const stickerSVG = t => '<svg viewBox="0 0 200 200" aria-hidden="true">' + (STIC
 
 /* ---------- storage: server-backed db ---------- */
 const Store = {
-  familyId: null,
+  token: null,
+  email: null,
   sample: null,
   db: true,
   chains: {},
-  async init(){
-    let fid = null;
-    try { fid = localStorage.getItem('chitalka:fid'); } catch (e) {}
-    if (!fid){ fid = Math.random().toString(36).slice(2,8) + Math.random().toString(36).slice(2,8); try { localStorage.setItem('chitalka:fid', fid); } catch (e) {} }
-    this.familyId = fid;
+  init(){
+    try { this.token = localStorage.getItem('chitalka:token'); this.email = localStorage.getItem('chitalka:email'); } catch (e) {}
     const self = this;
     this.sample = {
       async json(prompt, opts){
-        const res = await fetch('/api/ai/json', {method:'POST', headers:{'Content-Type':'application/json','X-Family':self.familyId}, body:JSON.stringify({prompt, tier:opts && opts.modelTier || 'default'})});
+        const res = await self.req('/api/ai/json', {method:'POST', body:JSON.stringify({prompt, tier:opts && opts.modelTier || 'default'})});
         if (!res.ok){ const err = await res.json().catch(() => ({})); throw {code: err.error || 'ai_error', message: err.error}; }
         return res.json();
       }
     };
   },
+  async req(url, opts = {}){
+    const headers = Object.assign({'Authorization':'Bearer ' + this.token}, opts.body ? {'Content-Type':'application/json'} : {});
+    const res = await fetch(url, Object.assign({}, opts, {headers}));
+    if (res.status === 401){ this.forget(); location.reload(); throw new Error('auth'); }
+    return res;
+  },
+  remember(token, email){
+    this.token = token; this.email = email;
+    try { localStorage.setItem('chitalka:token', token); localStorage.setItem('chitalka:email', email); localStorage.removeItem('chitalka:fid'); } catch (e) {}
+  },
+  forget(){
+    this.token = null; this.email = null;
+    try { localStorage.removeItem('chitalka:token'); localStorage.removeItem('chitalka:email'); } catch (e) {}
+  },
   async get(id){
-    const res = await fetch('/api/db/' + encodeURIComponent(id), {headers:{'X-Family':this.familyId}});
+    const res = await this.req('/api/db/' + encodeURIComponent(id));
     if (res.status === 404) return null;
     if (!res.ok) throw new Error('Ошибка чтения данных');
     return res.json();
@@ -558,17 +569,15 @@ const Store = {
   },
   set(id, data){
     return this.queue(id, async () => {
-      const res = await fetch('/api/db/' + encodeURIComponent(id), {method:'POST', headers:{'Content-Type':'application/json','X-Family':this.familyId}, body:JSON.stringify(data)});
+      const res = await this.req('/api/db/' + encodeURIComponent(id), {method:'POST', body:JSON.stringify(data)});
       if (!res.ok) throw new Error('Ошибка сохранения');
     });
   },
   del(id){
-    return this.queue(id, async () => {
-      await fetch('/api/db/' + encodeURIComponent(id), {method:'DELETE', headers:{'X-Family':this.familyId}});
-    });
+    return this.queue(id, async () => { await this.req('/api/db/' + encodeURIComponent(id), {method:'DELETE'}); });
   },
   async books(){
-    const res = await fetch('/api/books', {headers:{'X-Family':this.familyId}});
+    const res = await this.req('/api/books');
     if (!res.ok) return [];
     return res.json();
   }
@@ -579,11 +588,11 @@ const S = {
   screen:'loading', family:null, kid:null, kd:null, books:[DEMO],
   pinBuf:'', pinErr:'', pinMode:null, setup:null, parentTab:'kids', parentMsg:'', editKid:null, confirm:null,
   paste:false, importMsg:'', progress:{}, homeTab:'shelf',
-  reader:null, quiz:null, chest:null, pendingChest:null, lastScreen:null, wordReq:0
+  reader:null, quiz:null, chest:null, lastScreen:null, wordReq:0
 };
-const KID_SCREENS = ['home', 'reader', 'quiz', 'chest', 'choice'];
+const KID_SCREENS = ['home', 'reader', 'quiz', 'chest'];
 
-function defaultKd(){ return {theme:'paper', themeChosen:false, font:1, books:{}, words:[], prizes:[], log:[], since:0, stats:{q:0, ok:0, chapters:0, days:[]}, last:null}; }
+function defaultKd(){ return {theme:'paper', themeChosen:false, font:1, books:{}, words:[], prizes:[], log:[], since:0, stats:{q:0, ok:0, chapters:0, days:[]}, last:null, bank:0, bankLog:[], fireDay:null}; }
 function normKd(d){
   const k = Object.assign(defaultKd(), d || {});
   k.stats = Object.assign({q:0, ok:0, chapters:0, days:[]}, k.stats || {});
@@ -600,7 +609,7 @@ function saveKd(){
 function saveFamily(){ return Store.set('family', S.family); }
 const bookById = id => S.books.find(b => b.id === id);
 const kidBooks = () => S.books.filter(b => S.kid.age >= (b.ageMin ?? 0) && S.kid.age <= (b.ageMax ?? 99));
-const bookProg = id => { const bp = S.kd.books[id] || {}; return {ch:bp.ch||0, done:bp.done||[], finished:!!bp.finished, globalWordsRead:bp.globalWordsRead||0, prizeRank:bp.prizeRank||0}; };
+const bookProg = id => { const bp = S.kd.books[id] || {}; return {ch:bp.ch||0, done:bp.done||[], finished:!!bp.finished, globalWordsRead:bp.globalWordsRead||0}; };
 async function loadBooks(){
   let list = [];
   try { list = await Store.books(); } catch (e) {}
@@ -627,50 +636,53 @@ function aiErr(e){
   return 'Не получилось связаться с ИИ. Попробуй ещё раз.';
 }
 function needAi(){ if (!Store.sample) throw {code:'no_ai'}; }
-async function quizDoc(book, ch, b){ try { return await Store.get('quiz_' + book.id + '_' + ch + '_' + b); } catch (e) { return null; } }
-async function summariesBefore(book, upto, b){
-  const parts = [];
-  for (let i = Math.max(0, upto - 14); i < upto; i++){
-    const q = await quizDoc(book, i, b);
-    if (q && q.summary) parts.push('Глава ' + (i + 1) + ': ' + q.summary);
-  }
-  return parts.join('\n').slice(-9000);
+const cleanQs = list => (Array.isArray(list) ? list : []).filter(q =>
+  q && typeof q.q === 'string' && Array.isArray(q.options) && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length
+).map(q => ({q:q.q, options:q.options.map(String), answer:q.answer, hint:String(q.hint || '')}));
+// Один запрос даёт две серии вопросов: первая — для первой попытки, вторая — для пересдачи
+const quizInflight = {};
+function getQuiz(book, ch, attempt = 0, avoid = []){
+  const b = band(S.kid.age), variant = Math.floor(attempt / 2);
+  const id = 'quiz_' + book.id + '_' + ch + '_' + b + (variant ? '_r' + variant : '');
+  if (!quizInflight[id]) quizInflight[id] = loadQuizDoc(book, ch, id, variant ? avoid : []).finally(() => { delete quizInflight[id]; });
+  return quizInflight[id].then(doc => ({questions:attempt % 2 ? doc.questions2 : doc.questions}));
 }
-async function getQuiz(book, ch){
-  const age = S.kid.age, b = band(age), id = 'quiz_' + book.id + '_' + ch + '_' + b;
-  const cached = await quizDoc(book, ch, b);
-  if (cached && Array.isArray(cached.questions) && cached.questions.length >= 8) return cached;
+async function loadQuizDoc(book, ch, id, avoid){
+  const cached = await Store.get(id).catch(() => null);
+  if (cached && cleanQs(cached.questions).length >= 8 && cleanQs(cached.questions2).length >= 8) return cached;
   needAi();
+  const age = S.kid.age, b = band(age);
   const paras = await chapterParas(book, ch);
-  const text = paras.join('\n').slice(0, 40000);
-  const prev = await summariesBefore(book, ch, b);
+  const text = paras.filter(p => typeof p === 'string').join('\n').slice(0, 40000);
   const k = b === 'l' ? 12 : b === 'm' ? 11 : 10;
   const prompt =
-`Ты внимательный учитель литературы. Нужно проверить, понял ли ребёнок ${years(age)} главу книги, и помочь ему лучше её запомнить.
+`Ты внимательный учитель литературы. Нужно проверить, прочитал ли ребёнок ${years(age)} главу книги.
 Книга: «${book.title}»${book.author ? ', ' + book.author : ''}. Глава ${ch + 1}: «${book.chapters[ch].title}».
-${prev ? 'Кратко о предыдущих главах:\n' + prev + '\n' : ''}
 Текст главы:
 """
 ${text}
 """
 
-Сделай три вещи:
-1) summary — пересказ этой главы в 3–5 предложениях со всеми именами героев. Ребёнок его не увидит, он нужен для памяти.
-2) characters — герои, которые действуют в этой главе (до 6). У каждого name (как его зовут в книге) и who (кто это, до 8 слов). Животные и предметы-персонажи тоже считаются.
-3) questions — ровно ${k} вопросов на понимание. ВАЖНО: каждый вопрос должен проверять, что ребёнок действительно прочитал текст — ответ нельзя угадать, не читая. Спрашивай о конкретных деталях: что именно сказал герой, какой предмет где находился, какое действие произошло после другого, в каком порядке происходили события, что именно решил или сделал герой в конкретный момент. Не задавай абстрактных вопросов вида «как ты думаешь» или «почему мог поступить так». Сложность и слова — для ребёнка ${years(age)}. У каждого вопроса 4 варианта ответа (options), ровно один верный; answer — номер верного варианта от 0 до 3; неверные варианты должны звучать правдоподобно и быть практически неотличимы от верного без чтения. hint — подсказка, в каком месте главы искать ответ, без самого ответа, до 15 слов.
-
+Составь две независимые серии вопросов: questions и questions2, в каждой ровно ${k} вопросов. Вопросы во второй серии должны касаться других деталей главы и не повторять первую.
+Каждый вопрос проверяет, что ребёнок действительно прочитал текст — ответ нельзя угадать, не читая. Спрашивай о конкретных деталях: что именно сказал герой, какой предмет где находился, какое действие произошло после другого, в каком порядке происходили события, что именно решил или сделал герой в конкретный момент. Не задавай абстрактных вопросов вида «как ты думаешь». Сложность и слова — для ребёнка ${years(age)}. У каждого вопроса 4 варианта ответа (options), ровно один верный; answer — номер верного варианта от 0 до 3; неверные варианты правдоподобны и почти неотличимы от верного без чтения. hint — подсказка, в каком месте главы искать ответ, без самого ответа, до 15 слов.
+${avoid.length ? '\nРебёнок уже видел вопросы ниже. Не повторяй и не перефразируй их:\n' + avoid.map(x => '- ' + x).join('\n') + '\n' : ''}
 Ответь только JSON такого вида:
-{"summary":"...","characters":[{"name":"...","who":"..."}],"questions":[{"q":"...","options":["...","...","...","..."],"answer":0,"hint":"..."}]}`;
-  const r = await Store.sample.json(prompt, {modelTier:'default', cache:{gcTime:86400000}});
-  const questions = (r && Array.isArray(r.questions) ? r.questions : []).filter(q =>
-    q && typeof q.q === 'string' && Array.isArray(q.options) && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length
-  ).map(q => ({q:q.q, options:q.options.map(String), answer:q.answer, hint:String(q.hint || '')}));
+{"questions":[{"q":"...","options":["...","...","...","..."],"answer":0,"hint":"..."}],"questions2":[...]}`;
+  const r = await Store.sample.json(prompt, {modelTier:'default'});
+  const questions = cleanQs(r && r.questions), questions2 = cleanQs(r && r.questions2);
   if (!questions.length) throw {code:'bad_data'};
-  const doc = {kind:'quiz', book:book.id, ch, band:b, summary:String(r.summary || ''), characters:(Array.isArray(r.characters) ? r.characters : []).filter(c => c && c.name).map(c => ({name:String(c.name), who:String(c.who || '')})).slice(0, 8), questions, at:Date.now()};
+  const doc = {kind:'quiz', book:book.id, ch, band:b, questions, questions2:questions2.length ? questions2 : questions, at:Date.now()};
   Store.set(id, doc).catch(() => {});
   return doc;
 }
-
+// Готовим вопросы заранее, пока ребёнок читает главу
+const quizPrefetched = new Set();
+function prefetchQuiz(book, ch){
+  const key = book.id + '_' + ch + '_' + S.kid.id;
+  if (quizPrefetched.has(key)) return;
+  quizPrefetched.add(key);
+  getQuiz(book, ch, failedAttempts(book.id, ch)).catch(() => quizPrefetched.delete(key));
+}
 
 /* ---------- import: TXT, FB2, EPUB ---------- */
 function decodeText(buf){
@@ -733,6 +745,54 @@ function joinPath(base, href){
   (base + href.split('#')[0]).split('/').forEach(p => { if (p === '..') out.pop(); else if (p && p !== '.') out.push(p); });
   return out.join('/');
 }
+async function epubReadImg(zip, base, src){
+  try {
+    const rel = src.split('?')[0];
+    const p = joinPath(base, decodeURIComponent(rel));
+    const f = zip.file(p) || zip.file(joinPath(base, rel));
+    if (!f) return null;
+    const b64 = await f.async('base64');
+    const lo = rel.toLowerCase();
+    const mime = lo.endsWith('.png') ? 'image/png' : lo.endsWith('.gif') ? 'image/gif' : lo.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+    return {img: `data:${mime};base64,${b64}`};
+  } catch { return null; }
+}
+const EPUB_BLOCKS = new Set(['p','div','section','article','li','dd','dt','td','th','h1','h2','h3','h4','h5','h6','blockquote','figcaption','pre']);
+// Сбрасывает накопленный текст в абзац. Короткие строки без букв (номера страниц) отбрасываются,
+// короткие заголовки тоже — они уже есть в названии главы.
+function epubFlush(out, textBuf){
+  const t = textBuf.t.replace(/\s+/g, ' ').trim();
+  textBuf.t = '';
+  if (!t || !/[A-Za-zА-Яа-яЁё]/.test(t)) return;
+  if (textBuf.heading && (t.length <= 20 || countWords([t]) < 4)) return;
+  out.push(t);
+}
+async function epubWalkContent(node, zip, base, out, textBuf){
+  if (node.nodeType === 3){ textBuf.t += node.textContent; return; }
+  if (node.nodeType !== 1) return;
+  const tag = node.localName ? node.localName.toLowerCase() : '';
+  if (['script','style','head'].includes(tag)) return;
+  if (tag === 'br'){ epubFlush(out, textBuf); return; }
+  if (tag === 'img'){
+    const s = node.getAttribute('src');
+    if (s){
+      epubFlush(out, textBuf);
+      const item = await epubReadImg(zip, base, s);
+      if (item) out.push(item);
+    }
+    return;
+  }
+  if (!EPUB_BLOCKS.has(tag)){
+    for (const c of node.childNodes) await epubWalkContent(c, zip, base, out, textBuf);
+    return;
+  }
+  epubFlush(out, textBuf);
+  const wasHeading = textBuf.heading;
+  if (/^h[1-6]$/.test(tag)) textBuf.heading = true;
+  for (const c of node.childNodes) await epubWalkContent(c, zip, base, out, textBuf);
+  epubFlush(out, textBuf);
+  textBuf.heading = wasHeading;
+}
 async function parseEpub(buf){
   if (typeof JSZip === 'undefined') throw new Error('не загрузился модуль для EPUB, обновите страницу');
   const zip = await JSZip.loadAsync(buf);
@@ -759,21 +819,26 @@ async function parseEpub(buf){
     let d = new DOMParser().parseFromString(html, 'application/xhtml+xml');
     if (d.getElementsByTagName('parsererror').length) d = new DOMParser().parseFromString(html, 'text/html');
     const h = d.querySelector('h1, h2, h3');
-    let paras = Array.from(d.querySelectorAll('p')).map(nodeText).filter(Boolean);
-    if (countWords(paras) < 40){
-      // EPUB without <p>: collect text from leaf block elements
-      paras = Array.from(d.querySelectorAll('div,section,article,td,li,blockquote'))
-        .filter(el => !el.querySelector('p,div,section,article'))
-        .map(nodeText).filter(s => s.length > 15);
-    }
-    if (countWords(paras) < 40) continue;
-    chapters.push({title:nodeText(h), paras});
+    const body = d.querySelector('body') || d.documentElement;
+    const paras = [];
+    const buf = {t:'', heading:false};
+    await epubWalkContent(body, zip, base, paras, buf);
+    epubFlush(paras, buf);
+    const words = countWords(paras);
+    if (words < 40) continue;
+    // Оглавление: большая часть текста — ссылки
+    const linkWords = countWords(Array.from(body.querySelectorAll('a')).map(a => a.textContent));
+    if (linkWords >= words * 0.5) continue;
+    const title = nodeText(h), tl = title.toLowerCase();
+    const body2 = paras.filter((p, i) => !(i < 3 && typeof p === 'string' && tl && tl.includes(p.toLowerCase())));
+    chapters.push({title, paras:body2});
   }
   return {title, author, chapters};
 }
 function splitParas(paras){
   const out = [];
   paras.forEach(p => {
+    if (typeof p !== 'string'){ out.push(p); return; }
     if (countWords([p]) <= 320){ out.push(p); return; }
     const sents = p.split(/(?<=[.!?…])\s+/);
     let cur = '';
@@ -783,19 +848,21 @@ function splitParas(paras){
   return out;
 }
 function filterMetaChapters(chs){
-  // Remove initial chapters that look like publisher metadata (copyright, ISBN, annotation)
-  const META_RE = /©|ISBN|\bиздательств|\bвсе права защищены\b|\bправообладатель\b|\bpublisher\b|\bcopyright\b/i;
+  const META_TITLE = /^(annotation|аннотация|copyright|copyrights|содержание|оглавление|обложка|cover|title\s*page?|titlepage|колофон|colophon|от\s+издателя|от\s+автора\s*$)$/i;
+  const META_RE = /©|ISBN|издательств|все права защищены|правообладател|\bpublisher\b|\bcopyright\b/i;
   return chs.filter((c, i) => {
-    if (i > 1) return true;
-    const text = (c.paras || []).join(' ');
-    if (META_RE.test(text) && (c.paras || []).length <= 8) return false;
+    if (META_TITLE.test((c.title || '').trim())) return false;
+    if (i > 2) return true;
+    const textParas = (c.paras || []).filter(p => typeof p === 'string');
+    const text = textParas.join(' ');
+    if (META_RE.test(text) && textParas.length <= 8) return false;
     return true;
   });
 }
 function finalizeChapters(chs){
   const out = [];
   chs.forEach(c => {
-    const paras = splitParas(c.paras.map(p => String(p).replace(/\s+/g, ' ').trim()).filter(Boolean));
+    const paras = splitParas(c.paras.map(p => typeof p === 'string' ? p.replace(/\s+/g, ' ').trim() : p).filter(p => typeof p !== 'string' || p));
     if (countWords(paras) < 5) return;
     const title = (c.title || '').replace(/\s+/g, ' ').trim().slice(0, 120);
     if (countWords(paras) <= 2200){ out.push({title, paras}); return; }
@@ -892,8 +959,44 @@ function scrSetup(){
       <p class="lead">Книги, вопросы по прочитанному и разговоры с героями.</p>
       <ol class="steps"><li class="${st.step === 'kids' ? 'done' : 'cur'}">PIN-код для родителей</li><li class="${st.step === 'kids' ? 'cur' : ''}">Дети и их возраст</li></ol>
     </div>
-    <div class="panel">${body}</div>
-    <p style="text-align:center; margin-top:12px"><button class="btn ghost small" data-act="showJoinFamily">Уже есть читалка? Ввести код семьи</button></p></div>`;
+    <div class="panel">${body}</div></div>`;
+}
+
+function scrLogin(){
+  const L = S.login;
+  const body = L.step === 'email'
+    ? `<h2 class="display" style="font-size:22px">Вход для родителей</h2>
+      <p class="muted">Введите почту — пришлём код для входа. Если читалки ещё нет, она создастся. На других устройствах входите с той же почтой.</p>
+      <form data-form="loginSend" style="display:grid;gap:12px"><label for="loginEmail">Почта<input id="loginEmail" type="email" inputmode="email" autocomplete="email" maxlength="254" value="${esc(L.email)}" placeholder="mama@example.com" required></label>
+      <div class="err" role="alert">${esc(L.err || '')}</div>
+      <div class="acts"><button class="btn" type="submit" ${L.busy ? 'disabled' : ''}>${L.busy ? 'Отправляю…' : 'Получить код'}</button></div></form>`
+    : `<h2 class="display" style="font-size:22px">Код из письма</h2>
+      <p class="muted">Мы отправили 6 цифр на <b>${esc(L.email)}</b>. Если письма нет, загляните в «Спам».</p>
+      ${L.devCode ? `<p class="okmsg">Тестовый режим: код ${esc(L.devCode)}</p>` : ''}
+      <form data-form="loginVerify" style="display:grid;gap:12px"><label for="loginCode">Код<input id="loginCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" required></label>
+      <div class="err" role="alert">${esc(L.err || '')}</div>
+      <div class="acts"><button class="btn" type="submit" ${L.busy ? 'disabled' : ''}>${L.busy ? 'Проверяю…' : 'Войти'}</button><button class="btn alt" type="button" data-act="loginBack">Другая почта</button><button class="btn ghost small" type="button" data-act="loginResend">Прислать код ещё раз</button></div></form>`;
+  return `<div class="setup">
+    <div class="brand"><div class="logo">Чит<i>а</i>лка</div>
+      <p class="lead">Книги, вопросы по прочитанному и награды за регулярное чтение.</p></div>
+    <div class="panel">${body}</div></div>`;
+}
+const AUTH_ERR = {bad_email:'Проверьте адрес почты.', wait:'Код уже отправлен. Новый можно запросить через минуту.', too_many:'Слишком много попыток. Попробуйте через час.',
+  no_code:'Сначала запросите код.', expired:'Код устарел. Запросите новый.', too_many_tries:'Слишком много неверных попыток. Запросите новый код.', wrong_code:'Неверный код. Проверьте цифры в письме.',
+  no_email:'Отправка писем пока не настроена.', email_failed:'Не получилось отправить письмо. Попробуйте чуть позже.'};
+async function authCall(path, body){
+  const res = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).catch(() => null);
+  const d = res ? await res.json().catch(() => ({})) : {};
+  if (!res || !res.ok) throw new Error(AUTH_ERR[d.error] || 'Не получилось связаться с сервером. Попробуйте ещё раз.');
+  return d;
+}
+async function loginSend(email){
+  const L = S.login;
+  L.email = email.trim(); L.err = ''; L.busy = true; render();
+  try { const d = await authCall('/api/auth/start', {email:L.email}); L.step = 'code'; L.devCode = d.devCode || ''; }
+  catch (e) { L.err = e.message; }
+  L.busy = false; render();
+  const f = $(L.step === 'code' ? '#loginCode' : '#loginEmail'); if (f) f.focus();
 }
 
 function scrProfiles(){
@@ -911,10 +1014,6 @@ function scrPin(){
   return `<div class="profiles"><div class="panel" style="width:min(420px,100%)">${keypad('Вход для родителей', 'Введите PIN-код')}<button class="btn alt" data-act="toProfiles">Назад</button></div></div>`;
 }
 
-function familyCodeRow(){
-  const code = Store.familyId || '';
-  return `<div class="setrow"><label>Код семьи<span class="muted" style="font-size:13px; font-weight:400">Введи этот код на другом устройстве, чтобы открыть свою читалку.</span></label><div style="display:flex; gap:8px; align-items:center"><code style="font-size:18px; letter-spacing:.1em; font-weight:700; background:var(--surface-2); padding:6px 12px; border-radius:8px">${esc(code)}</code><button class="btn alt small" data-act="copyFamilyCode" data-code="${esc(code)}">Скопировать</button></div></div>`;
-}
 function parentKids(){
   const rows = S.family.kids.map(k => {
     if (S.editKid === k.id) return `<div class="row edit">${kidForm(k)}<div class="acts"><button class="btn small" data-act="saveKid" data-id="${k.id}">Сохранить</button><button class="btn alt small" data-act="cancelEdit">Отмена</button></div></div>`;
@@ -923,7 +1022,7 @@ function parentKids(){
       ${conf ? `<span class="muted">Удалить вместе с прогрессом?</span><button class="btn small danger" data-act="delKid" data-id="${k.id}">Удалить</button><button class="btn alt small" data-act="cancelConfirm">Нет</button>`
         : `<button class="btn alt small" data-act="editKid" data-id="${k.id}">Изменить</button><button class="btn ghost small" data-act="askDel" data-what="kid:${k.id}">Удалить</button>`}</div>`;
   }).join('');
-  return familyCodeRow() + `<section class="panel"><h2>Дети</h2><p class="muted">Возраст определяет, какие книги видит ребёнок и насколько просто ИИ объясняет слова и задаёт вопросы.</p>
+  return `<section class="panel"><h2>Вход</h2><div class="row"><div class="grow">Читалка привязана к почте <b>${esc(Store.email || '')}</b>. На другом устройстве войдите с этой почтой — придёт код.</div><button class="btn alt small" data-act="logout">Выйти на этом устройстве</button></div></section><section class="panel"><h2>Дети</h2><p class="muted">Возраст определяет, какие книги видит ребёнок и насколько просто ИИ объясняет слова и задаёт вопросы.</p>
     <div class="rows">${rows || '<p class="muted">Пока никого нет.</p>'}</div>
     ${S.editKid === 'new' ? `<div class="row edit"><h3>Новый читатель</h3>${kidForm()}<div class="acts"><button class="btn" data-act="saveKid" data-id="new">Добавить</button><button class="btn alt" data-act="cancelEdit">Отмена</button></div></div>`
       : `<div><button class="btn" data-act="newKid">Добавить ребёнка</button></div>`}</section>`;
@@ -972,23 +1071,45 @@ function parentProgress(){
     </section>`;
   }).join('');
 }
-const tierOpts = v => [1, 2, 3, 4].map(t => `<option value="${t}" ${t === v ? 'selected' : ''}>${PRIZE_TIERS[t].name}</option>`).join('');
+const typeOpts = v => Object.entries(PRIZE_TYPES).map(([t, n]) => `<option value="${t}" ${t === v ? 'selected' : ''}>${n}</option>`).join('');
 function parentPrizes(){
   if (!S.family.kids.length) return `<div class="empty"><b>Нет детей</b><span>Добавьте ребёнка на вкладке «Дети».</span></div>`;
-  const intro = `<section class="panel"><h2>Призы из сундука</h2><p class="muted">После каждой прочитанной главы и вопросов ребёнок открывает сундук, и в нём всегда лежит один из призов, которые вы здесь добавили. У каждого приза есть уровень: от «Рыбки» до «Кита». Крупные призы выпадают реже, но чем больше ребёнок читает (сколько глав за неделю и сколько дней), тем выше шанс поймать рыбу покрупнее.</p>
-    <div class="stats">${[1, 2, 3, 4].map(t => `<div class="stat"><b>${PRIZE_TIERS[t].base}→${PRIZE_TIERS[t].base + PRIZE_TIERS[t].grow}</b><span>${PRIZE_TIERS[t].name}: вес без удачи → при полной удаче</span></div>`).join('')}</div></section>`;
-  return intro + S.family.kids.map(k => {
-    const r = rw(k), kd = normKd(S.progress[k.id]);
-    const pending = kd.prizes.filter(p => !p.given);
-    return `<section class="panel"><header style="display:flex;gap:12px;align-items:center">${ava(k)}<h2 class="grow">${esc(k.name)}</h2></header>
-      <div class="rows">${r.items.length ? r.items.map((it, i) => `<div class="row t${it.tier}"><b class="grow">${esc(it.text)}</b><label class="agesel" for="tier-${k.id}-${i}">Уровень<select id="tier-${k.id}-${i}" data-kid="${k.id}" data-item="${i}">${tierOpts(it.tier)}</select></label><button class="btn ghost small" data-act="delItem" data-kid="${k.id}" data-i="${i}">Удалить</button></div>`).join('')
-        : '<p class="muted">Призов пока нет. Без них в сундуке будет только шутка.</p>'}</div>
-      <div class="additem"><label for="newItem-${k.id}">Новый приз<input id="newItem-${k.id}" maxlength="60" placeholder="Например, мороженое"></label><label for="newTier-${k.id}">Уровень<select id="newTier-${k.id}">${tierOpts(2)}</select></label><button class="btn" data-act="addItem" data-kid="${k.id}">Добавить</button></div>
-      <div class="ideachips">${PRIZE_IDEAS.map(([t, tier]) => `<button data-act="addIdea" data-kid="${k.id}" data-t="${esc(t)}" data-tier="${tier}">+ ${esc(t)} · ${PRIZE_TIERS[tier].name}</button>`).join('')}</div>
-      <div class="setrow"><label for="q-${k.id}">Вопросов герою за каждую главу<select id="q-${k.id}" data-kid="${k.id}" data-set="q">${[[3, '3'], [5, '5'], [10, '10'], [0, 'Без ограничений']].map(([v, l]) => `<option value="${v}" ${r.q === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label><label for="wpc-${k.id}">Слов до сундука<select id="wpc-${k.id}" data-kid="${k.id}" data-kid-prop="wordsPerChest">${[[0, 'По возрасту (' + WORDS_PER_SESSION(k.age) + ' сл.)'], [500, '500'], [800, '800'], [1200, '1200'], [1600, '1600'], [2000, '2000'], [3000, '3000']].map(([v, l]) => `<option value="${v}" ${(k.wordsPerChest||0) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
-      <div><h3 style="margin-bottom:8px">Ждут выдачи${pending.length ? ': ' + pending.length : ''}</h3>${pending.length ? `<div class="rows">${pending.map(p => `<div class="row t${p.tier}"><div class="grow"><b>${esc(p.text)}</b><div class="muted" style="font-size:13px">${PRIZE_TIERS[p.tier].name} · ${new Date(p.at).toLocaleDateString('ru-RU', {day:'numeric', month:'long'})} · «${esc(p.book)}»</div></div><button class="btn small second" data-act="givePrize" data-kid="${k.id}" data-id="${p.id}">Выдано</button></div>`).join('')}</div>` : '<p class="muted">Все призы выданы.</p>'}</div>
-    </section>`;
-  }).join('');
+  const prizes = S.family.prizes || [], kids = S.family.kids;
+  const kidChipsFor = pid => {
+    const it = prizes.find(x => x.id === pid); if (!it) return '';
+    return kids.map(k => {
+      const on = !it.kids || it.kids === 'all' || (Array.isArray(it.kids) && it.kids.includes(k.id));
+      return `<button class="kidchip${on ? ' on' : ''}" data-act="togglePrizeKid" data-pid="${pid}" data-kid="${k.id}">${esc(k.name.slice(0,8))}</button>`;
+    }).join('');
+  };
+  const rowsOf = type => {
+    const list = prizes.filter(it => (it.type || 'daily') === type);
+    return list.length ? list.map(it => `<div class="row t${prizeVis(it)}"><b class="grow">${esc(it.text)}</b><label class="agesel"><select data-pid="${it.id}" data-prize-prop="type">${typeOpts(it.type || 'daily')}</select></label><div class="kidchips">${kidChipsFor(it.id)}</div><button class="btn ghost small" data-act="delItem" data-id="${it.id}">Удалить</button></div>`).join('') : '';
+  };
+  const dailyRows = rowsOf('daily'), streakRows = rowsOf('streak');
+  const pendingAll = kids.flatMap(k => { const kd = normKd(S.progress[k.id]); return kd.prizes.filter(p => !p.given).map(p => ({...p, kidId:k.id, kidName:k.name})); });
+  const bank = bankCfg();
+  return `<section class="panel"><h2>Как устроены награды</h2>
+    <ul class="muted" style="margin:0;padding-left:20px;display:grid;gap:6px">
+      <li>Прочитал норму слов и прошёл вопросы — получает <b>${bank.per} ${esc(bank.name)}</b> в копилку. Не больше ${MAX_BANK_PER_DAY} норм в день — дальше текст закрыт до завтра. Можно ошибиться до ${MAX_WRONG} раз; больше — придётся перечитать и пройти новые вопросы.</li>
+      <li>Прошёл с первой попытки и читал вчера (или читает первый день) — выбирает один из <b>трёх ежедневных сундуков</b>.</li>
+      <li>Пропустил день — сегодня без сундука, но копилка пополняется. Завтра сундуки вернутся.</li>
+      <li>${STREAK_DAYS} дней чтения подряд — дополнительный <b>огненный сундук</b>. Пропуск дня обнуляет серию.</li>
+    </ul></section>
+  <section class="panel"><h2>Копилка</h2><p class="muted">Что копится за каждую пройденную норму. Когда выдадите накопленное — нажмите «Выдать», копилка обнулится.</p>
+    <div class="additem"><label>Что копим<input id="bankName" maxlength="30" value="${esc(bank.name)}" placeholder="минут игры"></label><label>Сколько за норму<input id="bankPer" type="number" min="1" max="999" value="${bank.per}"></label><button class="btn" data-act="saveBank">Сохранить</button></div>
+    <div class="rows" style="margin-top:10px">${kids.map(k => { const kd = normKd(S.progress[k.id]); return `<div class="row"><b class="grow">${esc(k.name)}: ${kd.bank} ${esc(bank.name)}</b>${kd.bank > 0 ? `<button class="btn small second" data-act="payBank" data-kid="${k.id}">Выдать</button>` : ''}</div>`; }).join('')}</div>
+  </section>
+  <section class="panel"><h2>Ежедневные сундуки</h2><p class="muted">Из этих призов собираются три сундука на выбор. Лучше добавить хотя бы три${prizes.filter(p => (p.type || 'daily') === 'daily').length < 3 ? ' — пока сундуков будет меньше' : ''}.</p>
+    <div class="rows">${dailyRows || '<p class="muted">Пока пусто.</p>'}</div></section>
+  <section class="panel"><h2>Огненный сундук</h2><p class="muted">Приз за ${STREAK_DAYS} дней чтения подряд.</p>
+    <div class="rows">${streakRows || '<p class="muted">Пока пусто — добавьте хотя бы один приз.</p>'}</div></section>
+  <section class="panel"><h2>Добавить приз</h2>
+    <div class="additem"><label>Новый приз<input id="newItemText" maxlength="60" placeholder="Например, мороженое"></label><label>Куда<select id="newItemType">${typeOpts('daily')}</select></label><button class="btn" data-act="addItem">Добавить</button></div>
+    <div class="ideachips">${PRIZE_IDEAS.map(([t, type]) => `<button data-act="addIdea" data-t="${esc(t)}" data-type="${type}">+ ${esc(t)}${type === 'streak' ? ' 🔥' : ''}</button>`).join('')}</div>
+  </section>
+  <section class="panel"><h2>Слов до сундука</h2>${kids.map(k=>`<div class="setrow"><label for="wpc-${k.id}">${esc(k.name)}<select id="wpc-${k.id}" data-kid="${k.id}" data-kid-prop="wordsPerChest">${[[0,'По возрасту ('+WORDS_PER_SESSION(k.age)+' сл.)'],[500,'500'],[800,'800'],[1200,'1200'],[1600,'1600'],[2000,'2000'],[3000,'3000']].map(([v,l])=>`<option value="${v}" ${(k.wordsPerChest||0)===v?'selected':''}>${l}</option>`).join('')}</select></label></div>`).join('')}</section>
+  <section class="panel"><h2>Ждут выдачи${pendingAll.length?': '+pendingAll.length:''}</h2>${pendingAll.length?`<div class="rows">${pendingAll.map(p=>`<div class="row t${prizeVis(p)}"><div class="grow"><b>${esc(p.text)}</b><div class="muted" style="font-size:13px">${p.type === 'streak' ? '🔥 Огненный · ' : ''}${esc(p.kidName)} · ${new Date(p.at).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})} · «${esc(p.book)}»</div></div><button class="btn small second" data-act="givePrize" data-kid="${p.kidId}" data-id="${p.id}">Выдано</button></div>`).join('')}</div>`:'<p class="muted">Все призы выданы.</p>'}</section>`;
 }
 function parentPin(){
   const t = S.pinMode === 'change2' ? 'Повторите новый PIN' : 'Новый PIN-код';
@@ -1005,111 +1126,84 @@ function scrParent(){
     ${body}</div>`;
 }
 
-const rw = k => Object.assign({items:[], q:5}, (k && k.rewards) || {});
-function luck(){
-  const now = Date.now(), wk = S.kd.log.filter(t => now - t < 7 * 864e5).length;
-  const days = weekDays().filter(d => S.kd.stats.days.includes(d.s)).length;
-  return Math.min(1, Math.min(wk, 7) / 7 * 0.6 + Math.min(days, 5) / 5 * 0.4);
-}
-const luckLevel = () => Math.round(luck() * 4) + 1;
-function luckHTML(){
-  const n = luckLevel();
-  return `<div class="luck"><span class="dots5" aria-label="Удача ${n} из 5">${[1,2,3,4,5].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span><b>Удача ${n} из 5</b><span class="muted">Чем чаще читаешь, тем крупнее рыба в сундуке.</span></div>`;
-}
-function rollPrize(prizeRank){
-  const items = rw(S.kid).items.filter(x => x && x.text);
-  if (!items.length) return {none:true};
-  const L = luck();
-  // Tier 4 available at rank >= 3 (accumulated by deferring prizes)
-  const maxTier = (prizeRank || 0) >= 3 ? 4 : 3;
-  const tiers = [1, 2, 3, 4].filter(t => t <= maxTier && items.some(i => i.tier === t));
-  const shift = Math.min((prizeRank || 0) * 12, 36);
-  const w = tiers.map(t => {
-    const base = PRIZE_TIERS[t].base + PRIZE_TIERS[t].grow * L;
-    if (t === 1) return Math.max(4, base - shift);
-    if (t === 2) return base + shift * 0.5;
-    if (t === 3) return base + shift * 0.8;
-    return base + shift; // tier 4
-  });
-  let x = Math.random() * w.reduce((a, b) => a + b, 0), tier = tiers[0];
-  for (let i = 0; i < tiers.length; i++){ if (x < w[i]){ tier = tiers[i]; break; } x -= w[i]; }
-  const pool = items.filter(i => i.tier === tier);
-  const it = pool[Math.floor(Math.random() * pool.length)];
-  return {text:it.text, tier};
+const prizePool = type => (S.family.prizes || []).filter(x => {
+  if (!x || !x.text || (x.type || 'daily') !== type) return false;
+  if (!x.kids || x.kids === 'all') return true;
+  return Array.isArray(x.kids) && x.kids.includes(S.kid.id);
+});
+function pickPrizes(type, n){
+  const pool = shuffle(prizePool(type).slice());
+  return pool.slice(0, n).map(it => ({text:it.text, type}));
 }
 function prizeHTML(p, ann, style){
-  if (p.none) return `<div class="meme"><div class="mtag">Сундук пустой</div><div class="mt" id="annH">${esc(ann ? ann.h : 'Когда открыл сундук, а призы ещё не положили')}</div><div class="mi">${chestSVG()}</div><div class="mb" id="annT">${esc(ann ? ann.t : 'Попроси взрослых положить призы в сундуки в настройках.')}</div></div>`;
-  const t = PRIZE_TIERS[p.tier];
-  if (style === 'meme') return `<div class="meme"><div class="mtag">Твой приз</div><div class="mt" id="annH">${esc(ann && ann.h ? ann.h : 'Когда дочитал главу')}</div><div class="mi">${giftSVG(p.tier)}</div><div class="mb">Приз: ${esc(p.text)}</div><div class="mb" id="annT" style="font-weight:600;padding-top:0">${esc(ann ? ann.t : '…')}</div></div>`;
-  return `<div class="prize t${p.tier}"><div class="ptier">Твой приз</div><div class="fish">${giftSVG(p.tier)}</div><h2 class="ptext">${esc(p.text)}</h2><p class="pann" id="annT">${esc(ann ? ann.t : '…')}</p><p class="pclaim">Приз сохранён в «Моих призах». Покажи его маме или папе.</p></div>`;
+  const v = prizeVis(p), tag = p.type === 'streak' ? '🔥 Огненный приз' : 'Твой приз';
+  if (style === 'meme') return `<div class="meme"><div class="mtag">${tag}</div><div class="mt" id="annH">${esc(ann && ann.h ? ann.h : 'Когда дочитал главу')}</div><div class="mi">${giftSVG(v)}</div><div class="mb">Приз: ${esc(p.text)}</div><div class="mb" id="annT" style="font-weight:600;padding-top:0">${esc(ann ? ann.t : '…')}</div></div>`;
+  return `<div class="prize t${v}"><div class="ptier">${tag}</div><div class="fish">${giftSVG(v)}</div><h2 class="ptext">${esc(p.text)}</h2><p class="pann"${style === 'fire' ? '' : ' id="annT"'}>${esc(style === 'fire' ? 'Пять дней подряд — это настоящая серия. Так держать!' : ann ? ann.t : '…')}</p><p class="pclaim">Приз сохранён в «Моих призах». Покажи его маме или папе.</p></div>`;
 }
-async function genAnn(p, style){
-  needAi();
-  const b = S.reader.book, ch = S.reader.ch, age = S.kid.age;
-  const q = b.builtin ? null : await quizDoc(b, ch, band(age));
-  const sum = b.builtin ? DEMO_SUM[ch] : (q && q.summary) || '';
-  const meme = style === 'meme';
-  const prompt =
-`Ребёнок ${years(age)} по имени ${S.kid.name} дочитал главу ${ch + 1} книги «${b.title}» и ответил на вопросы. Из сундука ему выпал приз от родителей: «${p.text}».
-О чём была глава: ${sum || 'пересказа нет'}
-${meme ? 'Придумай смешной мем-подпись про этот приз и героев главы: h — подпись в формате «Когда…» (до 10 слов), t — панчлайн в одно предложение.' : 'Напиши весёлое короткое объявление о призе: h — заголовок до 6 слов, t — 1–2 предложения, где приз вручают с юмором, обыгрывая события или героев главы.'}
-Правила: смешно и по-доброму для ребёнка ${years(age)}; без спойлеров дальше этой главы; без насмешек над ребёнком; не обещай ничего сверх приза; не упоминай уровни, редкость, рыб и удачу; без смайликов; обращайся на «ты» и не используй слов, которые зависят от пола ребёнка.
-Ответь только JSON: {"h":"...","t":"..."}`;
-  const r = await Store.sample.json(prompt, {modelTier:'quick', cache:false});
-  if (!r || !r.t) return null;
-  return {h:String(r.h || '').slice(0, 90), t:String(r.t).slice(0, 260)};
+function streakDays(){
+  const days = S.kd.stats.days || [];
+  let n = 0;
+  for (let i = 0; i < 30; i++){
+    const d = new Date(); d.setDate(d.getDate() - i);
+    if (days.includes(dayStr(d))) n++; else if (i > 0) break;
+  }
+  return n;
 }
-function setupChest(firstOk, total, prizeRank){
-  const x = Math.random(), mode = x < 0.45 ? 'chest' : x < 0.75 ? 'scratch' : 'three';
-  const prizes = []; for (let i = 0; i < (mode === 'three' ? 3 : 1); i++) prizes.push(rollPrize(prizeRank || 0));
-  S.chest = {mode, prizes, style:Math.random() < 0.35 ? 'meme' : 'card', state:mode === 'scratch' ? 'open' : 'closed', firstOk, total, chosen:null, ann:null, scratched:false};
-  if (mode === 'scratch') claim(0);
+// Сундук положен, если вчера было чтение или это самый первый день чтения
+function chestEligible(){
+  const today = dayStr(), prev = (S.kd.stats.days || []).filter(d => d !== today);
+  if (!prev.length) return true;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  return prev.includes(dayStr(y));
+}
+const daysSince = d => Math.round((Date.parse(dayStr()) - Date.parse(d)) / 864e5);
+function fireDue(streak){
+  return streak >= STREAK_DAYS && (!S.kd.fireDay || daysSince(S.kd.fireDay) >= STREAK_DAYS);
+}
+const bankToday = () => (S.kd.bankLog || []).filter(x => dayStr(new Date(x.at)) === dayStr()).length;
+function grantReward(q){
+  const eligible = chestEligible(), firstTry = !q.isRetry;
+  completeChapter(q.qs.length, q.firstOk);
+  const bank = bankCfg(), add = bankToday() < MAX_BANK_PER_DAY ? bank.per : 0;
+  if (add){
+    S.kd.bank = (S.kd.bank || 0) + add;
+    S.kd.bankLog = (S.kd.bankLog || []).concat({at:Date.now(), n:add, book:S.reader.book.title}).slice(-200);
+  }
+  const streak = streakDays();
+  const daily = firstTry && eligible ? pickPrizes('daily', 3) : [];
+  let fire = null;
+  if (firstTry && fireDue(streak)){ fire = pickPrizes('streak', 1)[0] || null; if (fire) S.kd.fireDay = dayStr(); }
+  saveKd();
+  S.chest = {daily, fire, state:daily.length ? 'closed' : 'open', chosen:null, fireOpen:false, ann:null,
+    style:Math.random() < 0.35 ? 'meme' : 'card', minutes:add, firstTry, eligible, streak, firstOk:q.firstOk, total:q.qs.length};
+}
+function savePrize(p){
+  S.kd.prizes.unshift({id:newId(), text:p.text, type:p.type, at:Date.now(), given:false, book:S.reader.book.title});
+  S.kd.prizes = S.kd.prizes.slice(0, 200); saveKd();
 }
 function claim(i){
-  const c = S.chest, p = c.prizes[i];
+  const c = S.chest;
   c.chosen = i;
-  if (!p.none){ S.kd.prizes.unshift({id:newId(), text:p.text, tier:p.tier, at:Date.now(), given:false, book:S.reader.book.title}); S.kd.prizes = S.kd.prizes.slice(0, 200); saveKd(); }
+  savePrize(c.daily[i]);
   loadAnn();
 }
-async function loadAnn(){
-  const c = S.chest, p = c.prizes[c.chosen];
-  let ann = null;
-  if (!p.none){ try { ann = await genAnn(p, c.style); } catch (e) {} }
-  if (!ann) ann = p.none ? null : c.style === 'meme' ? FUN_FALLBACK[Math.floor(Math.random() * FUN_FALLBACK.length)] : {h:'', t:PRIZE_LINES[Math.floor(Math.random() * PRIZE_LINES.length)]};
-  if (S.chest !== c) return;
+function loadAnn(){
+  const c = S.chest;
+  const ann = c.style === 'meme' ? FUN_FALLBACK[Math.floor(Math.random() * FUN_FALLBACK.length)] : {h:'', t:PRIZE_LINES[Math.floor(Math.random() * PRIZE_LINES.length)]};
   c.ann = ann;
-  if (!ann) return;
-  const h = $('#annH'), t = $('#annT');
-  if (h && ann.h) h.textContent = ann.h;
-  if (t) t.textContent = ann.t;
 }
-function initScratch(){
-  const cv = $('#scratch'); if (!cv || cv.dataset.ready) return;
-  cv.dataset.ready = '1';
-  const rc = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(rc.width * dpr); cv.height = Math.round(rc.height * dpr);
-  const g = cv.getContext('2d'); g.scale(dpr, dpr);
-  const grd = g.createLinearGradient(0, 0, rc.width, rc.height);
-  grd.addColorStop(0, '#B9BFC9'); grd.addColorStop(.5, '#EEF1F5'); grd.addColorStop(1, '#A3AAB6');
-  g.fillStyle = grd; g.fillRect(0, 0, rc.width, rc.height);
-  g.fillStyle = 'rgba(80,88,104,.35)';
-  for (let y = 10; y < rc.height; y += 22) for (let x = (y / 22 % 2) * 11; x < rc.width; x += 22) g.fillRect(x, y, 3, 3);
-  g.fillStyle = '#4A5262'; g.textAlign = 'center'; g.font = '800 20px Nunito, sans-serif';
-  g.fillText('Сотри пальцем', rc.width / 2, rc.height / 2 - 4);
-  g.font = '700 14px Nunito, sans-serif'; g.fillText('как защитный слой на крышке', rc.width / 2, rc.height / 2 + 18);
-  g.globalCompositeOperation = 'destination-out'; g.strokeStyle = '#000'; g.lineWidth = 38; g.lineCap = 'round'; g.lineJoin = 'round';
-  let down = false, last = null, moves = 0;
-  const pt = e => { const b = cv.getBoundingClientRect(); return {x:e.clientX - b.left, y:e.clientY - b.top}; };
-  const draw = p => { g.beginPath(); g.moveTo((last || p).x, (last || p).y); g.lineTo(p.x + .01, p.y); g.stroke(); last = p; if (++moves % 12 === 0) check(); };
-  const check = () => {
-    const data = g.getImageData(0, 0, cv.width, cv.height).data; let clear = 0, n = 0;
-    for (let i = 3; i < data.length; i += 4 * 40){ n++; if (data[i] === 0) clear++; }
-    if (clear / n > 0.55){ cv.classList.add('gone'); S.chest.scratched = true; setTimeout(() => cv.remove(), 450); }
-  };
-  cv.addEventListener('pointerdown', e => { down = true; last = null; try { cv.setPointerCapture(e.pointerId); } catch (x) {} draw(pt(e)); });
-  cv.addEventListener('pointermove', e => { if (down) draw(pt(e)); });
-  const up = () => { down = false; last = null; check(); };
-  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+function rewardStatsHTML(){
+  const kd = S.kd, bank = bankCfg(), streak = streakDays();
+  const sinceFire = kd.fireDay ? daysSince(kd.fireDay) : Infinity;
+  const done = sinceFire < streak ? sinceFire : streak;
+  const left = Math.max(0, STREAK_DAYS - done);
+  const fireLine = left === 0 ? 'Огненный сундук ждёт — пройди вопросы с первой попытки!' : `До огненного сундука: ${left} ${plural(left, 'день', 'дня', 'дней')}`;
+  const dayDone = bankToday() >= MAX_BANK_PER_DAY ? `<p style="font-size:14px;font-weight:700;margin:0 0 4px">🌙 На сегодня норма выполнена — продолжение завтра.</p>` : '';
+  const noChest = !chestEligible() ? `<p class="muted" style="font-size:13px;margin:0">Вчера чтения не было — сегодня без сундуков. Почитай сегодня, и завтра они вернутся!</p>` : '';
+  return `<div class="kstats">
+    <div class="kstat"><b>${kd.bank || 0}</b><span>${esc(bank.name)} в копилке · сегодня ${Math.min(bankToday(), MAX_BANK_PER_DAY)} из ${MAX_BANK_PER_DAY}</span></div>
+    <div class="kstat${streak >= 2 ? ' hot' : ''}"><b>🔥 ${streak}</b><span>${plural(streak, 'день', 'дня', 'дней')} подряд</span></div>
+  </div><p class="muted" style="font-size:13px;margin:0 0 4px">${fireLine}</p>${dayDone}${noChest}`;
 }
 function scrHome(){
   const k = S.kid, kd = S.kd, books = kidBooks();
@@ -1141,9 +1235,9 @@ function scrHome(){
     body = books.length ? `<div class="shelf">${books.map(b => { const p = bookProg(b.id), totalBW = bookTotalWords(b), pct = totalBW > 0 ? Math.min(100, Math.round(p.globalWordsRead / totalBW * 100)) : 0; return `<button class="bookbtn" data-act="openBook" data-id="${b.id}">${cover(b)}<span class="meta">${p.finished ? '<span class="badge">Прочитана</span>' : p.globalWordsRead > 0 ? pct + '%' : b.chapters.length + ' ' + plural(b.chapters.length, 'глава', 'главы', 'глав')}</span></button>`; }).join('')}</div>`
       : `<div class="empty"><b>Книг пока нет</b><span>Попроси взрослого добавить книги.</span></div>`;
   } else if (S.homeTab === 'prizes'){
-    const items = rw(k).items;
+    const items = prizePool('daily').concat(prizePool('streak'));
     body = `${items.length ? '' : '<div class="empty"><b>Взрослые ещё не положили призы в сундуки</b><span>Попроси их зайти в настройки и добавить призы.</span></div>'}
-      ${kd.prizes.length ? `<ul class="plist">${kd.prizes.map(p => `<li class="t${p.tier}"><span class="fishmini">${giftSVG(p.tier)}</span><div class="grow"><b>${esc(p.text)}</b><div class="muted" style="font-size:13px">${new Date(p.at).toLocaleDateString('ru-RU', {day:'numeric', month:'long'})} · «${esc(p.book)}»</div></div>${p.given ? '<span class="saved">✓ Получено</span>' : '<span class="badge">Покажи взрослому</span>'}</li>`).join('')}</ul>`
+      ${kd.prizes.length ? `<ul class="plist">${kd.prizes.map(p => `<li class="t${prizeVis(p)}"><span class="fishmini">${giftSVG(prizeVis(p))}</span><div class="grow"><b>${esc(p.text)}</b><div class="muted" style="font-size:13px">${new Date(p.at).toLocaleDateString('ru-RU', {day:'numeric', month:'long'})} · «${esc(p.book)}»</div></div>${p.given ? '<span class="saved">✓ Получено</span>' : '<span class="badge">Покажи взрослому</span>'}</li>`).join('')}</ul>`
         : (items.length ? '<div class="empty"><b>Пока призов нет</b><span>Дочитай главу, ответь на вопросы и открой сундук.</span></div>' : '')}`;
   } else {
     body = kd.words.length ? `<ul class="dict">${kd.words.map(w => `<li><b>${esc(w.w)}</b><span>${esc(w.m)}</span>${w.ex ? `<span class="muted">Например: ${esc(w.ex)}</span>` : ''}<span class="src">«${esc(w.book)}»</span></li>`).join('')}</ul>`
@@ -1153,7 +1247,7 @@ function scrHome(){
     <header class="khead">${ava(k)}<div class="grow"><h1 class="display">Привет, ${esc(k.name)}!</h1></div>
       <button class="btn alt small" data-act="themeSheet">Оформление</button><button class="btn ghost small" data-act="toProfiles">Сменить читателя</button></header>
     <div class="toprow">${cont}
-      <div class="week"><h3>На этой неделе: ${readDays} ${plural(readDays, 'день', 'дня', 'дней')} из 7</h3>
+      <div class="week">${rewardStatsHTML()}<h3>На этой неделе: ${readDays} ${plural(readDays, 'день', 'дня', 'дней')} из 7</h3>
         <div class="days">${week.map(d => `<div class="day ${kd.stats.days.includes(d.s) ? 'on' : ''} ${d.today ? 'today' : ''}"><i>${kd.stats.days.includes(d.s) ? '✓' : ''}</i><span>${d.l}</span></div>`).join('')}</div>
         </div>
     </div>
@@ -1192,29 +1286,50 @@ function scrReader(){
   const done = totalWords > 0 && gwr >= chStart + totalWords;
   const needsContinue = !done && flagPara === -1 && totalWords > 0;
 
+  // Дневная норма выполнена — всё непрочитанное закрыто до завтра
+  const dayLocked = !done && totalWords > 0 && bankToday() >= MAX_BANK_PER_DAY;
+  let lockPara = -1;
+  if (dayLocked && r.paras){
+    const readInCh = gwr - chStart; let w = 0; lockPara = r.paras.length;
+    for (let i = 0; i < r.paras.length; i++){ if (w >= readInCh){ lockPara = i; break; } w += countWords([r.paras[i]]); }
+  }
+  const lockBlock = `<div class="chest-gate"><div style="font-size:44px;line-height:1">🌙</div><b style="font-size:18px">На сегодня норма выполнена!</b><p class="muted" style="margin:0;text-align:center;max-width:34ch">Продолжение откроется завтра. Отдыхай — книга подождёт.</p></div>`;
+
   let text;
   if (r.paras){
     const parts = [];
     r.paras.forEach((x, i) => {
-      const blurred = !done && flagPara >= 0 && i > flagPara;
-      parts.push(`<p class="tx${blurred ? ' blurred' : ''}" data-p="${i}">${wordify(x)}</p>`);
-      if (flagPara === i && !done) parts.push(
-        `<div class="chest-gate"><button class="chest-gate-btn" data-act="startQuiz">${chestSVG()}<span>Открой сундук — ответь на вопросы</span></button></div>`);
+      const blurred = dayLocked ? i >= lockPara : !done && flagPara >= 0 && i > flagPara;
+      if (dayLocked && i === lockPara) parts.push(lockBlock);
+      if (x && typeof x === 'object' && x.img){
+        parts.push(`<div class="book-img${blurred ? ' blurred' : ''}" data-p="${i}"><img src="${x.img}" alt=""></div>`);
+      } else {
+        parts.push(`<p class="tx${blurred ? ' blurred' : ''}" data-p="${i}">${wordify(x)}</p>`);
+      }
+      if (flagPara === i && !done && !dayLocked){
+        const failed = failedAttempts(b.id, r.ch);
+        const resume = S.quiz && S.quiz.qs && !S.quiz.finished && S.quiz.bookId === b.id && S.quiz.ch === r.ch;
+        const label = resume ? `Вернуться к вопросу ${S.quiz.idx + 1}` : failed ? 'Пройти новые вопросы — пополнить копилку' : 'Открой сундук — ответь на вопросы';
+        const note = failed ? `<p class="muted" style="font-size:13px;margin:0;text-align:center;max-width:36ch">Сундук этой главы сгорел. Перечитай главу внимательно — за новые вопросы получишь ${bankCfg().per} ${esc(bankCfg().name)}.</p>` : '';
+        parts.push(`<div class="chest-gate">${note}<button class="chest-gate-btn" data-act="startQuiz">${chestSVG()}<span>${label}</span></button></div>`);
+      }
     });
+    if (flagPara >= 0 && !done && !dayLocked) prefetchQuiz(b, r.ch);
     text = parts.join('').replace(/<span class="w">([^<]+)<\/span>/g, (m, w) => seen.has(w.toLowerCase()) ? `<span class="w seen">${w}</span>` : m);
   } else {
     text = `<div class="center" style="min-height:30vh"><div class="spinner"></div><p class="muted">Открываю главу…</p></div>`;
   }
 
-  const prizeRank = (S.kd.books[b.id] || {}).prizeRank || 0;
   const totalBW = bookTotalWords(b);
   const progPct = totalBW > 0 ? Math.min(100, Math.round(gwr / totalBW * 100)) : 0;
-  const progLabel = prizeRank > 0 ? '🔥 Ранг ' + prizeRank + ' — приз растёт!' : target + ' слов = 1 сундук';
+  const progLabel = target + ' слов = норма';
   const progBar = totalBW > 0 ? `<div class="sess-prog"><div class="bar"><i id="sessBar" style="width:${progPct}%"></i></div><span class="sess-label">${progLabel}</span></div>` : '';
 
   let footer = '';
   if (r.paras && done){
-    footer = `<footer class="rend"><p class="muted">Этот отрывок ты уже прошёл.</p><div class="acts" style="justify-content:center">${r.ch + 1 < n ? `<button class="btn big" data-act="readCh" data-id="${b.id}" data-ch="${r.ch + 1}">Следующая глава</button>` : ''}<button class="btn alt" data-act="startQuiz">Пройти вопросы ещё раз</button></div></footer>`;
+    footer = `<footer class="rend"><p class="muted">Этот отрывок ты уже прошёл.</p><div class="acts" style="justify-content:center">${r.ch + 1 < n ? `<button class="btn big" data-act="readCh" data-id="${b.id}" data-ch="${r.ch + 1}">Следующая глава</button>` : ''}</div></footer>`;
+  } else if (r.paras && dayLocked){
+    footer = `<footer class="rend"><p class="muted">Продолжение — завтра 🌙</p><div class="acts" style="justify-content:center"><button class="btn alt" data-act="toHome">К книгам</button></div></footer>`;
   } else if (r.paras && needsContinue){
     footer = `<footer class="rend"><p class="muted">Продолжай читать — сундук впереди!</p><div class="acts" style="justify-content:center">${r.ch + 1 < n ? `<button class="btn big" data-act="readCh" data-id="${b.id}" data-ch="${r.ch + 1}">Читать дальше →</button>` : `<p class="muted">Конец книги.</p>`}</div></footer>`;
   }
@@ -1236,34 +1351,33 @@ function scrQuiz(){
   if (q.error) return `<div class="quiz">${head}<div class="center"><h2>Вопросы не получились</h2><p class="err">${esc(q.error)}</p>
     <div class="acts" style="justify-content:center"><button class="btn" data-act="retryQuiz">Попробовать ещё раз</button><button class="btn alt" data-act="skipQuiz">Отметить главу прочитанной</button></div></div></div>`;
   if (q.finished){
-    const total = q.qs.length, threshold = Math.ceil(total * 0.8), pct = Math.round(q.firstOk / total * 100);
-    if (q.passed){
+    const bank = bankCfg(), total = q.qs.length, errs = q.totalWrong || 0;
+    if (!q.passed){
       return `<div class="quiz">${head}<div class="center" style="padding:32px 0">
-        <div class="praise" style="font-size:clamp(52px,12vw,88px);line-height:1">${pct}%</div>
-        <h2 class="display" style="margin:8px 0 4px">Отлично!</h2>
-        <p class="muted">Верно с первой попытки: ${q.firstOk} из ${total}</p>
-        <button class="btn big" data-act="claimAfterQuiz" style="margin-top:16px">Открыть сундук 🎉</button>
-      </div></div>`;
-    } else {
-      return `<div class="quiz">${head}<div class="center" style="padding:32px 0">
-        <div class="praise" style="font-size:clamp(52px,12vw,88px);line-height:1;color:var(--muted)">${pct}%</div>
-        <h2 class="display" style="margin:8px 0 4px">Почти!</h2>
-        <p class="muted">Верно: ${q.firstOk} из ${total}. Нужно хотя бы ${threshold}.</p>
-        <p class="muted" style="font-size:14px">Загляни в текст и попробуй ещё раз — там есть все ответы.</p>
-        <div class="acts" style="justify-content:center;margin-top:16px">
-          <button class="btn big" data-act="retryQuiz">Ещё раз</button>
-          <button class="btn alt" data-act="backToText">К тексту</button>
+        <div style="font-size:80px;line-height:1">🔥</div>
+        <h2 class="display" style="margin:8px 0 4px">${q.isRetry ? 'Снова слишком много ошибок' : 'Сундук сгорел!'}</h2>
+        <p class="muted" style="max-width:34ch">Ошибок: ${errs}, а можно не больше ${MAX_WRONG}. ${q.isRetry ? '' : 'Сундука за эту главу уже не будет. '}Перечитай главу внимательно — потом будут новые вопросы, и за них ты получишь ${bank.per} ${esc(bank.name)}.</p>
+        <div class="acts" style="justify-content:center;margin-top:18px">
+          <button class="btn big" data-act="burnedRead">Перечитать главу</button>
+          <button class="btn alt" data-act="toHome">К книгам</button>
         </div>
       </div></div>`;
     }
+    return `<div class="quiz">${head}<div class="center" style="padding:32px 0">
+      <div class="praise" style="font-size:clamp(44px,10vw,72px);line-height:1">${q.firstOk} из ${total}</div>
+      <h2 class="display" style="margin:8px 0 4px">${errs === 0 ? 'Без единой ошибки!' : 'Вопросы пройдены!'}</h2>
+      <p class="muted">Ошибок: ${errs} из ${MAX_WRONG} допустимых</p>
+      ${q.isRetry ? '<p class="muted" style="font-size:14px">Сундук сгорел в прошлый раз, но копилка пополнится.</p>' : ''}
+      <button class="btn big" data-act="claimAfterQuiz" style="margin-top:16px">Забрать награду 🎉</button>
+    </div></div>`;
   }
   const cur = q.qs[q.idx], last = q.idx === q.qs.length - 1;
   return `<div class="quiz">${head}
     <div class="qdots" aria-label="Вопрос ${q.idx + 1} из ${q.qs.length}">${q.qs.map((x, i) => `<i class="${i < q.idx ? 'on' : i === q.idx ? 'cur' : ''}"></i>`).join('')}</div>
-    <div class="eyebrow">Вопрос ${q.idx + 1} из ${q.qs.length}</div>
+    <div class="eyebrow">Вопрос ${q.idx + 1} из ${q.qs.length} · ошибок ${q.totalWrong || 0} из ${MAX_WRONG}</div>
     <h2 class="qtext">${esc(cur.q)}</h2>
     <div class="opts">${cur.options.map((o, i) => { const st = q.solved && i === cur.answer ? 'right' : q.wrong.includes(i) ? 'wrong' : ''; return `<button class="opt ${st}" data-act="answer" data-i="${i}" ${q.solved || q.wrong.includes(i) ? 'disabled' : ''}>${esc(o)}</button>`; }).join('')}</div>
-    ${q.wrong.length && !q.solved ? `<div class="hint"><b>Подсказка.</b> ${esc(cur.hint || 'Загляни в главу ещё раз.')} <button class="btn small alt" data-act="backToText" style="margin-left:6px">Перечитать</button></div>` : ''}
+    ${q.wrong.length && !q.solved ? `<div class="hint"><b>Подсказка.</b> ${esc(cur.hint || 'Загляни в главу ещё раз.')} <button class="btn small alt" data-act="backToText" style="margin-left:6px">Перечитать в книге</button></div>` : ''}
     ${q.solved ? `<div class="praise">${esc(q.praise)}</div><div><button class="btn big" data-act="nextQ">${last ? 'Посмотреть результат' : 'Следующий вопрос'}</button></div>` : ''}
   </div>`;
 }
@@ -1281,59 +1395,47 @@ function chestSVG(){
   </svg>`;
 }
 function scrChest(){
-  const c = S.chest, b = S.reader.book, ch = S.reader.ch, n = b.chapters.length;
+  const c = S.chest, b = S.reader.book, ch = S.reader.ch, n = b.chapters.length, bank = bankCfg();
   const finished = bookProg(b.id).finished;
   const nextBtn = ch + 1 < n ? `<button class="btn" data-act="readCh" data-id="${b.id}" data-ch="${ch + 1}">Следующая глава</button>` : '';
   const after = `${finished ? '<p class="praise">Книга прочитана целиком!</p>' : ''}<div class="acts" style="justify-content:center">${nextBtn}<button class="btn alt" data-act="toHome">К книгам</button></div>`;
-  const head = `<div class="eyebrow">Глава ${ch + 1} пройдена${c.total ? ' · с первой попытки ' + c.firstOk + ' из ' + c.total : ''}</div>`;
-  if (c.mode === 'scratch'){
-    return `<div class="chestwrap">${head}<h1 class="display">${c.scratched ? 'Вот что было под слоем!' : 'Сотри слой и узнай приз'}</h1>
-      <div class="scratchbox">${prizeHTML(c.prizes[0], c.ann, c.style)}${c.scratched ? '' : '<canvas id="scratch" aria-label="Защитный слой, сотри его пальцем"></canvas>'}</div>
-      ${c.scratched ? '' : '<button class="btn ghost small" data-act="revealAll">Не получается стереть — открыть сразу</button>'}${after}</div>`;
+  const head = `<div class="eyebrow">Глава ${ch + 1} пройдена</div><div class="bank-badge">${c.minutes ? `+${c.minutes} ${esc(bank.name)}` : `Копилка на сегодня полная (${MAX_BANK_PER_DAY} из ${MAX_BANK_PER_DAY})`} · в копилке ${S.kd.bank}</div>`;
+  const nd = c.daily.length;
+  if (nd && c.state !== 'open'){
+    const opening = c.state === 'opening';
+    const title = opening ? 'Открываю…' : nd > 1 ? 'Выбери один сундук' : 'Сундук за главу';
+    return `<div class="chestwrap">${head}<h1 class="display">${title}</h1>
+      <div class="${nd > 1 ? 'three' : ''}" ${nd === 2 ? 'style="grid-template-columns:repeat(2,minmax(0,1fr));width:min(380px,100%)"' : ''}>${c.daily.map((_, i) => `<button class="chest ${opening && c.chosen === i ? 'shake' : ''}" data-act="pickChest" data-i="${i}" aria-label="Сундук ${i + 1}" ${opening ? 'disabled' : ''}>${chestSVG()}</button>`).join('')}</div>
+      <p class="muted">${opening ? 'Кто-то стучится изнутри…' : nd > 1 ? 'В каждом свой приз. Что было в остальных, покажу после выбора.' : 'Нажми на сундук'}</p></div>`;
   }
-  if (c.mode === 'three' && c.state !== 'open'){
-    return `<div class="chestwrap">${head}<h1 class="display">${c.state === 'opening' ? 'Открываю…' : 'Выбери один сундук'}</h1>
-      <div class="three">${[0, 1, 2].map(i => `<button class="chest ${c.state === 'opening' && c.chosen === i ? 'shake' : ''}" data-act="pickChest" data-i="${i}" aria-label="Сундук ${i + 1}" ${c.state === 'opening' ? 'disabled' : ''}>${chestSVG()}</button>`).join('')}</div>
-      <p class="muted">В каждом свой приз. Что внутри остальных, узнаешь после выбора.</p></div>`;
+  let main = '';
+  if (nd){
+    const others = c.daily.map((p, i) => i === c.chosen ? '' : `<span>${esc(p.text)}</span>`).join('');
+    main = `<div class="pop" style="display:grid;justify-items:center;width:100%">${prizeHTML(c.daily[c.chosen], c.ann, c.style)}</div>
+      ${others ? `<div class="others"><b>А в других сундуках было:</b>${others}</div>` : ''}`;
+  } else {
+    const why = !c.firstTry ? 'Сундук этой главы сгорел, но копилка пополнилась. В следующей главе постарайся ответить без лишних ошибок!'
+      : !c.eligible ? 'Вчера чтения не было, поэтому сегодня без сундука. Почитай сегодня — и завтра сундуки вернутся!'
+      : 'Взрослые ещё не положили призы в сундуки. Попроси их добавить призы в настройках.';
+    main = `<h1 class="display">${c.firstTry && c.eligible ? 'Копилка пополнена!' : 'Сегодня без сундука'}</h1><p class="muted" style="max-width:36ch;text-align:center">${why}</p>`;
   }
-  if (c.state !== 'open'){
-    return `<div class="chestwrap">${head}<h1 class="display">${c.state === 'opening' ? 'Открываю…' : 'Сундук за главу'}</h1>
-      <button class="chest ${c.state === 'opening' ? 'shake' : ''}" data-act="openChest" aria-label="Открыть сундук" ${c.state === 'opening' ? 'disabled' : ''}>${chestSVG()}</button>
-      <p class="muted">${c.state === 'opening' ? 'Кто-то стучится изнутри…' : 'Нажми на сундук'}</p></div>`;
+  let fire = '';
+  if (c.fire){
+    fire = c.fireOpen
+      ? `<div class="pop" style="display:grid;justify-items:center;width:100%">${prizeHTML(c.fire, null, 'fire')}</div>`
+      : `<div style="display:grid;justify-items:center;gap:8px"><div class="fire-tag">🔥 ${c.streak} ${plural(c.streak, 'день', 'дня', 'дней')} подряд — огненный сундук!</div>
+        <button class="chest fire-chest" data-act="openFire" aria-label="Открыть огненный сундук">${chestSVG()}</button></div>`;
   }
-  const others = c.mode === 'three' ? c.prizes.map((p, i) => i === c.chosen || p.none ? '' : `<span>${esc(p.text)}</span>`).join('') : '';
-  return `<div class="chestwrap">${head}<div class="pop" style="display:grid;justify-items:center;width:100%">${prizeHTML(c.prizes[c.chosen], c.ann, c.style)}</div>
-    ${others ? `<div class="others"><b>А в других сундуках было:</b>${others}</div>` : ''}${after}</div>`;
+  const ready = !nd || c.state === 'open';
+  return `<div class="chestwrap">${head}${main}${fire}${ready && (!c.fire || c.fireOpen) ? after : ''}</div>`;
 }
 
-function scrChoice(){
-  const c = S.pendingChest, b = S.reader.book, ch = S.reader.ch;
-  const prizeRank = c.prizeRank || 0;
-  const bp = S.kd.books[b.id] || {};
-  const bookFinished = !!(bp.finished);
-  const hasMore = ch + 1 < b.chapters.length;
-  const rankNames = ['', 'Рыбка', 'Рыба покрупнее', 'Большая рыба', 'Кит'];
-  const rankLine = prizeRank > 0 ? `<div class="choice-bonus">Ты уже ${prizeRank === 1 ? 'один раз' : prizeRank + ' раза'} не взял приз — ранг ${prizeRank} (${rankNames[Math.min(prizeRank, 4)]})!</div>` : '';
-  const continueAvail = hasMore && prizeRank < 3 && !bookFinished;
-  const continueHint = bookFinished ? 'Книга прочитана — поздравляем!' :
-    prizeRank >= 3 ? 'Дальше ранг уже не растёт. Лучший момент взять приз!' : 'Читай дальше — приз станет лучше.';
-  return `<div class="choice-wrap">
-    <h1 class="display">Приз заработан!</h1>
-    ${rankLine}
-    <p class="muted" style="max-width:36ch">${continueHint}</p>
-    <div class="choice-acts">
-      <button class="btn big" data-act="claimNow">Открыть сундук сейчас</button>
-      ${continueAvail ? `<button class="btn alt big" data-act="deferPrize">Читать дальше →</button>` : ''}
-    </div>
-  </div>`;
-}
-const SCREENS = {loading:scrLoading, setup:scrSetup, profiles:scrProfiles, pin:scrPin, parent:scrParent, home:scrHome, reader:scrReader, quiz:scrQuiz, chest:scrChest, choice:scrChoice};
+const SCREENS = {login:scrLogin, loading:scrLoading, setup:scrSetup, profiles:scrProfiles, pin:scrPin, parent:scrParent, home:scrHome, reader:scrReader, quiz:scrQuiz, chest:scrChest};
 function render(){
   const kidMode = KID_SCREENS.includes(S.screen) && S.kd;
   if (kidMode) document.body.dataset.kt = S.kd.theme; else delete document.body.dataset.kt;
   app.innerHTML = SCREENS[S.screen]();
   if (S.lastScreen !== S.screen){ window.scrollTo(0, 0); S.lastScreen = S.screen; }
-  if (S.screen === 'chest' && S.chest && S.chest.mode === 'scratch' && !S.chest.scratched) requestAnimationFrame(initScratch);
 }
 function go(screen){ S.screen = screen; render(); }
 
@@ -1372,7 +1474,8 @@ async function openReader(book, ch){
 }
 async function explainWord(span){
   const word = span.textContent, pEl = span.closest('p');
-  const para = (S.reader.paras || [])[+pEl.dataset.p] || '';
+  const _paraRaw = (S.reader.paras || [])[+pEl.dataset.p];
+  const para = typeof _paraRaw === 'string' ? _paraRaw : '';
   const sent = (para.split(/(?<=[.!?…])\s+/).find(s => s.includes(word)) || para).slice(0, 400);
   document.querySelectorAll('.w.act').forEach(e => e.classList.remove('act'));
   span.classList.add('act');
@@ -1380,6 +1483,11 @@ async function explainWord(span){
   const req = ++S.wordReq, age = S.kid.age, book = S.reader.book;
   const show = html => { if (req === S.wordReq){ const el = $('#wexp'); if (el) el.innerHTML = html; } };
   try {
+    const raw = word.toLowerCase();
+    const mine = S.kd.words.find(w => w.raw === raw && w.bookId === book.id);
+    const wc = await wordCache(book.id);
+    let r = mine ? {lemma:mine.w, meaning:mine.m, example:mine.ex, old:mine.old} : wc.map[raw] || null;
+    if (!r){
     needAi();
     const prompt =
 `Ты помогаешь ребёнку ${years(age)} читать книгу «${book.title}». Ребёнок нажал на слово «${word}» в предложении:
@@ -1392,11 +1500,13 @@ async function explainWord(span){
 - lemma: начальная форма слова (например, «шёл» → «идти», «волнами» → «волна»);
 - old: true, если слово устаревшее или редкое в наши дни.
 Ответь только JSON: {"lemma":"...","meaning":"...","example":"...","old":false}`;
-    const r = await Store.sample.json(prompt, {modelTier:'quick', cache:{gcTime:86400000}});
-    const meaning = String(r && r.meaning || '').trim();
-    if (!meaning) throw {code:'bad_data'};
+    r = await Store.sample.json(prompt, {modelTier:'quick'});
+    if (!String(r && r.meaning || '').trim()) throw {code:'bad_data'};
+    wc.map[raw] = {lemma:String(r.lemma || ''), meaning:String(r.meaning), example:String(r.example || ''), old:!!r.old};
+    Store.set(wc.id, wc.map).catch(() => {});
+    }
+    const meaning = String(r.meaning).trim();
     const lemma = String(r.lemma || word).trim() || word, ex = String(r.example || '').trim();
-    const raw = word.toLowerCase();
     if (!S.kd.words.some(w => w.raw === raw && w.bookId === book.id)){
       S.kd.words.unshift({raw, w:lemma, m:meaning, ex, old:!!r.old, book:book.title, bookId:book.id, at:Date.now()});
       S.kd.words = S.kd.words.slice(0, 400); saveKd();
@@ -1408,17 +1518,29 @@ async function explainWord(span){
     show(`<p class="err">${esc(aiErr(e))}</p>${e && e.code === 'no_ai' ? '' : '<div><button class="btn small alt" data-act="retryWord">Ещё раз</button></div>'}`);
   }
 }
+// Общий для семьи кэш объяснений: слово по книге и возрастной группе объясняется один раз
+async function wordCache(bookId){
+  const id = 'wc_' + bookId + '_' + band(S.kid.age);
+  S.wc = S.wc || {};
+  if (!S.wc[id]) S.wc[id] = (await Store.get(id).catch(() => null)) || {};
+  return {id, map:S.wc[id]};
+}
+const failedAttempts = (bookId, ch) => (((S.kd.books[bookId] || {}).fails || {})[ch]) || 0;
 async function startQuiz(){
   const r = S.reader;
+  // Resume in-progress quiz if it's for the same book+chapter
+  if (S.quiz && S.quiz.qs && !S.quiz.finished && S.quiz.bookId === r.book.id && S.quiz.ch === r.ch){ go('quiz'); return; }
+  const attempt = failedAttempts(r.book.id, r.ch);
+  const avoid = attempt ? (((S.kd.books[r.book.id] || {}).seenQs || {})[r.ch] || []) : [];
   S.quiz = {loading:true};
   go('quiz');
   try {
-    const doc = await getQuiz(r.book, r.ch);
-    const qs = doc.questions.map(q => {
+    const doc = await getQuiz(r.book, r.ch, attempt, avoid);
+    const qs = shuffle(doc.questions).map(q => {
       const order = shuffle(q.options.map((_, i) => i));
       return {q:q.q, hint:q.hint, options:order.map(i => q.options[i]), answer:order.indexOf(q.answer)};
     });
-    S.quiz = {qs, idx:0, wrong:[], solved:false, firstOk:0, praise:''};
+    S.quiz = {qs, idx:0, wrong:[], solved:false, firstOk:0, praise:'', totalWrong:0, bookId:r.book.id, ch:r.ch, isRetry:attempt > 0};
   } catch (e) {
     S.quiz = {error:aiErr(e)};
   }
@@ -1446,6 +1568,37 @@ function completeChapter(total, firstOk){
   S.kd.last = b.id;
   saveKd();
 }
+function triggerConfetti(){
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999';
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const colors = ['#ffd700','#ff6b35','#7c3aed','#0ea5e9','#22c55e','#f43f5e','#fb923c','#e879f9'];
+  const ps = Array.from({length:130}, () => ({
+    x: canvas.width * Math.random(), y: -10 - Math.random() * 120,
+    vx: (Math.random() - 0.5) * 7, vy: 2 + Math.random() * 5,
+    r: 4 + Math.random() * 7, c: colors[Math.floor(Math.random() * colors.length)],
+    spin: (Math.random() - 0.5) * 0.35, a: Math.random() * Math.PI * 2
+  }));
+  let af;
+  const frame = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = 0;
+    ps.forEach(p => {
+      if (p.y > canvas.height + 20) return; alive++;
+      p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.a += p.spin;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+      ctx.globalAlpha = Math.max(0, 1 - Math.max(0, p.y - canvas.height * 0.55) / (canvas.height * 0.45));
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+      ctx.restore();
+    });
+    if (alive > 0) af = requestAnimationFrame(frame); else canvas.remove();
+  };
+  af = requestAnimationFrame(frame);
+  setTimeout(() => { cancelAnimationFrame(af); canvas.remove(); }, 5000);
+}
+
 async function openChest(i){
   const c = S.chest;
   if (c.state !== 'closed') return;
@@ -1454,6 +1607,14 @@ async function openChest(i){
   await sleep(1300);
   c.state = 'open';
   if (S.screen === 'chest' && S.chest === c) render();
+}
+async function openFire(){
+  const c = S.chest;
+  if (!c || !c.fire || c.fireOpen) return;
+  c.fireOpen = true;
+  savePrize(c.fire);
+  render();
+  requestAnimationFrame(triggerConfetti);
 }
 
 /* ---------- PIN ---------- */
@@ -1522,23 +1683,32 @@ const A = {
     render();
   },
   newKid(){ S.editKid = 'new'; render(); },
-  async addItem(el){
-    const k = S.family.kids.find(x => x.id === el.dataset.kid); if (!k) return;
-    const inp = $('#newItem-' + k.id), text = ((inp && inp.value) || '').trim();
+  async addItem(){
+    const text = (($('#newItemText') || {}).value || '').trim();
     if (!text){ toast('Напишите, что за приз'); return; }
-    k.rewards = rw(k); k.rewards.items.push({text:text.slice(0, 60), tier:+(($('#newTier-' + k.id) || {}).value || 2)});
+    S.family.prizes = S.family.prizes || [];
+    if (S.family.prizes.some(i => i.text === text)){ toast('Такой приз уже есть'); return; }
+    S.family.prizes.push({id:newId(), text:text.slice(0,60), type:(($('#newItemType')||{}).value||'daily'), kids:'all'});
     await saveFamily().catch(() => toast('Не получилось сохранить')); render();
   },
   async addIdea(el){
-    const k = S.family.kids.find(x => x.id === el.dataset.kid); if (!k) return;
-    k.rewards = rw(k);
-    if (k.rewards.items.some(i => i.text === el.dataset.t)){ toast('Такой приз уже есть'); return; }
-    k.rewards.items.push({text:el.dataset.t, tier:+el.dataset.tier});
+    S.family.prizes = S.family.prizes || [];
+    if (S.family.prizes.some(i => i.text === el.dataset.t)){ toast('Такой приз уже есть'); return; }
+    S.family.prizes.push({id:newId(), text:el.dataset.t, type:el.dataset.type || 'daily', kids:'all'});
     await saveFamily().catch(() => toast('Не получилось сохранить')); render();
   },
   async delItem(el){
-    const k = S.family.kids.find(x => x.id === el.dataset.kid); if (!k) return;
-    k.rewards = rw(k); k.rewards.items.splice(+el.dataset.i, 1);
+    S.family.prizes = (S.family.prizes || []).filter(x => x.id !== el.dataset.id);
+    await saveFamily().catch(() => toast('Не получилось сохранить')); render();
+  },
+  async togglePrizeKid(el){
+    const it = (S.family.prizes || []).find(x => x.id === el.dataset.pid); if (!it) return;
+    const kids = S.family.kids.map(k => k.id);
+    // Normalise to array
+    let cur = it.kids === 'all' ? [...kids] : Array.isArray(it.kids) ? [...it.kids] : [...kids];
+    const kid = el.dataset.kid;
+    if (cur.includes(kid)) cur = cur.filter(k => k !== kid); else cur.push(kid);
+    it.kids = cur.length === kids.length ? 'all' : cur;
     await saveFamily().catch(() => toast('Не получилось сохранить')); render();
   },
   async givePrize(el){
@@ -1604,6 +1774,7 @@ const A = {
   },
   readCh(el){ const b = bookById(el.dataset.id); if (b) openReader(b, +el.dataset.ch); },
   toHome(){ closeSheet(); if (S.homeTab === 'words') S.homeTab = 'shelf'; go('home'); },
+  burnedRead(){ S.quiz = null; S.lastScreen = null; go('reader'); },
   retryWord(){ if (S.retrySpan && document.body.contains(S.retrySpan)) explainWord(S.retrySpan); },
   startQuiz(){ startQuiz(); },
   retryQuiz(){ startQuiz(); },
@@ -1619,60 +1790,51 @@ const A = {
     const q = S.quiz, cur = q.qs[q.idx], i = +el.dataset.i;
     if (q.solved) return;
     if (i === cur.answer){ q.solved = true; if (!q.wrong.length) q.firstOk++; q.praise = PRAISE[Math.floor(Math.random() * PRAISE.length)]; }
-    else if (!q.wrong.includes(i)) q.wrong.push(i);
+    else if (!q.wrong.includes(i)){ q.wrong.push(i); q.totalWrong = (q.totalWrong || 0) + 1; }
     render();
   },
   nextQ(){
     const q = S.quiz;
     if (q.idx < q.qs.length - 1){ q.idx++; q.wrong = []; q.solved = false; render(); return; }
-    // Last question — show results screen
-    const threshold = Math.ceil(q.qs.length * 0.8);
     q.finished = true;
-    q.passed = q.firstOk >= threshold;
+    q.passed = (q.totalWrong || 0) <= MAX_WRONG;
+    if (!q.passed){
+      const bp = S.kd.books[q.bookId] = S.kd.books[q.bookId] || {ch:0, done:[], globalWordsRead:0};
+      bp.fails = bp.fails || {}; bp.fails[q.ch] = (bp.fails[q.ch] || 0) + 1;
+      bp.seenQs = bp.seenQs || {}; bp.seenQs[q.ch] = (bp.seenQs[q.ch] || []).concat(q.qs.map(x => x.q)).slice(-40);
+      saveKd();
+    }
     render();
   },
   claimAfterQuiz(){
-    const q = S.quiz, b = S.reader.book, ch = S.reader.ch;
-    completeChapter(q.qs.length, q.firstOk);
-    const bp = S.kd.books[b.id] || {};
-    const prizeRank = bp.prizeRank || 0;
-    const hasMore = ch + 1 < b.chapters.length;
-    const canContinue = hasMore && prizeRank < 3 && !bp.finished;
-    S.pendingChest = {firstOk:q.firstOk, total:q.qs.length, prizeRank};
+    const q = S.quiz;
+    if (!q || !q.passed || q.claimed) return;
+    q.claimed = true;
+    grantReward(q);
     S.quiz = null;
-    go(canContinue ? 'choice' : 'chest');
-    if (!canContinue){ setupChest(q.firstOk, q.qs.length, prizeRank); if (prizeRank > 0){ bp.prizeRank = 0; saveKd(); } }
-  },
-  claimNow(){
-    const c = S.pendingChest, bp = S.kd.books[S.reader.book.id] = S.kd.books[S.reader.book.id] || {};
-    setupChest(c.firstOk, c.total, c.prizeRank || 0);
-    bp.prizeRank = 0; saveKd();
-    S.pendingChest = null;
     go('chest');
   },
-  deferPrize(){
-    const c = S.pendingChest, b = S.reader.book;
-    const bp = S.kd.books[b.id] = S.kd.books[b.id] || {ch:0, done:[], globalWordsRead:0};
-    bp.prizeRank = Math.min(3, (bp.prizeRank || 0) + 1);
-    saveKd();
-    S.pendingChest = null;
-    toast('Приз ждёт! Читай дальше — он станет лучше 🔥');
-    openReader(b, nextUnreadCh(b));
+  async saveBank(){
+    const name = (($('#bankName') || {}).value || '').trim().slice(0, 30) || 'минут игры';
+    const per = Math.max(1, Math.min(999, Math.round(+(($('#bankPer') || {}).value) || 10)));
+    S.family.bank = {name, per};
+    await saveFamily().then(() => toast('Сохранено')).catch(() => toast('Не получилось сохранить')); render();
   },
-  copyFamilyCode(el){ navigator.clipboard.writeText(el.dataset.code).then(() => toast('Код скопирован')).catch(() => toast(el.dataset.code)); },
-  showJoinFamily(){ openSheet(`<h2 class="display" style="font-size:20px">Войти в свою читалку</h2><p class="muted">Введи код семьи — он есть в настройках для родителей.</p><label for="joinCode">Код семьи<input id="joinCode" maxlength="24" placeholder="abcdef01..." autocomplete="off"></label><div class="acts" style="margin-top:12px"><button class="btn" data-act="doJoinFamily">Войти</button><button class="btn alt" data-act="closeSheet">Отмена</button></div>`); },
-  async doJoinFamily(){
-    const code = (($('#joinCode') || {}).value || '').trim().toLowerCase();
-    if (!code){ toast('Введи код семьи'); return; }
-    const res = await fetch('/api/family/' + code + '/exists').catch(() => null);
-    const ok = res && (await res.json().catch(() => ({}))).exists;
-    if (!ok){ toast('Читалка с таким кодом не найдена'); return; }
-    try { localStorage.setItem('chitalka:fid', code); } catch (e) {}
-    location.reload();
+  async payBank(el){
+    const id = el.dataset.kid, kd = normKd(S.progress[id]);
+    kd.bankPaid = (kd.bankPaid || []).concat({at:Date.now(), n:kd.bank}).slice(-100);
+    kd.bank = 0;
+    try { await Store.set('kid_' + id, kd); S.progress[id] = kd; toast('Копилка обнулена'); } catch (e) { toast('Не получилось сохранить'); }
+    render();
   },
-  openChest(){ openChest(0); },
+  openFire(){ openFire(); },
+  loginBack(){ S.login = {step:'email', email:S.login.email, err:''}; render(); },
+  loginResend(){ loginSend(S.login.email); },
+  async logout(){
+    try { await Store.req('/api/auth/logout', {method:'POST'}); } catch (e) {}
+    Store.forget(); location.reload();
+  },
   pickChest(el){ openChest(+el.dataset.i); },
-  revealAll(){ S.chest.scratched = true; render(); },
 };
 
 document.addEventListener('click', e => {
@@ -1691,10 +1853,9 @@ document.addEventListener('change', e => {
     const v = +t.value; if (v > 0) k[t.dataset.kidProp] = v; else delete k[t.dataset.kidProp];
     saveFamily().then(() => toast('Сохранено')).catch(() => toast('Не получилось сохранить'));
   }
-  else if (t.dataset && t.dataset.kid && (t.dataset.item != null || t.dataset.set)){
-    const k = S.family.kids.find(x => x.id === t.dataset.kid); if (!k) return;
-    k.rewards = rw(k);
-    if (t.dataset.set) k.rewards[t.dataset.set] = +t.value; else if (k.rewards.items[+t.dataset.item]) k.rewards.items[+t.dataset.item].tier = +t.value;
+  else if (t.dataset && t.dataset.pid && t.dataset.prizeProp){
+    const it = (S.family.prizes || []).find(x => x.id === t.dataset.pid); if (!it) return;
+    it[t.dataset.prizeProp] = t.value; render();
     saveFamily().then(() => toast('Сохранено')).catch(() => toast('Не получилось сохранить'));
   }
   else if (t.dataset && t.dataset.book && t.dataset.f){
@@ -1704,18 +1865,43 @@ document.addEventListener('change', e => {
     Store.set('book_' + b.id, b).then(() => { S.parentMsg = 'Возраст для «' + b.title + '» сохранён'; render(); }).catch(() => toast('Не получилось сохранить'));
   }
 });
-document.addEventListener('submit', e => {
+document.addEventListener('submit', async e => {
+  const f = e.target.dataset && e.target.dataset.form;
+  if (!f) return;
+  e.preventDefault();
+  const L = S.login;
+  if (!L || L.busy) return;
+  if (f === 'loginSend') return loginSend(($('#loginEmail') || {}).value || '');
+  if (f === 'loginVerify'){
+    const code = (($('#loginCode') || {}).value || '').trim();
+    L.err = ''; L.busy = true; render();
+    try {
+      const d = await authCall('/api/auth/verify', {email:L.email, code});
+      Store.remember(d.token, d.email);
+      location.reload();
+    } catch (err) { L.busy = false; L.err = err.message; render(); }
+  }
 });
 document.addEventListener('keydown', e => {
-
-  else if (e.key === 'Escape' && !sheetEl.hidden) closeSheet();
+  if (e.key === 'Escape' && !sheetEl.hidden) closeSheet();
 });
 
 /* ---------- boot ---------- */
 async function boot(){
   render();
-  await Store.init();
+  Store.init();
+  if (!Store.token){ S.login = {step:'email', email:'', err:''}; go('login'); return; }
   try { S.family = await Store.get('family'); } catch (e) { S.family = null; }
+  // Migrate per-kid prizes to family.prizes
+  if (S.family && !S.family.prizes){
+    S.family.prizes = [];
+    (S.family.kids || []).forEach(k => { const items = (k.rewards && k.rewards.items) || []; items.forEach(it => { if (it && it.text) S.family.prizes.push({id:newId(), text:it.text, type:'daily', kids:[k.id]}); }); });
+    saveFamily().catch(() => {});
+  }
+  if (S.family && (S.family.prizes || []).some(p => !p.type)){
+    S.family.prizes.forEach(p => { if (!p.type) p.type = 'daily'; delete p.tier; });
+    saveFamily().catch(() => {});
+  }
   await loadBooks();
   if (S.family && S.family.pinHash){ go('profiles'); }
   else { S.setup = {step:'pin1', kids:[], err:''}; S.pinMode = 'setup1'; go('setup'); }
