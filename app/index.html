@@ -1072,7 +1072,7 @@ const COVER_ART = [
 ];
 const cover = (b, sm) => {
   if (b.cover) return `<span class="cover img ${sm ? 'sm' : ''}"><img src="${b.cover}" alt="" loading="lazy"></span>`;
-  const h = hashStr(b.title + (b.author || '')), [a, d, c] = COVER_TONES[h % COVER_TONES.length], art = COVER_ART[(h >> 3) % COVER_ART.length];
+  const h = hashStr(b.title + (b.author || '')), [a, d, c] = COVER_TONES[h % COVER_TONES.length], art = COVER_ART[(h >>> 3) % COVER_ART.length];
   return `<span class="cover ${sm ? 'sm' : ''}" style="background:${a}"><svg class="cvart" viewBox="0 0 120 90" aria-hidden="true">${art(a, d, c)}</svg><b>${esc(b.title)}</b><span>${esc(b.author || '')}</span></span>`;
 };
 
