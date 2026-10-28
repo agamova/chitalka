@@ -284,6 +284,9 @@ body[data-kt]::before{content:""; position:fixed; inset:0 0 auto; height:env(saf
 .w:hover{background:color-mix(in srgb, var(--accent) 12%, transparent)}
 .w.seen{text-decoration:underline; text-decoration-color:color-mix(in srgb, var(--second) 70%, transparent); text-decoration-thickness:2px; text-underline-offset:4px}
 .w.act{background:color-mix(in srgb, var(--accent) 22%, transparent)}
+/* the paragraph with the answer, after "Перечитать в книге" */
+.page .flash{animation:flash 3.5s ease-out}
+@keyframes flash{0%, 40%{background:color-mix(in srgb, var(--gold) 30%, transparent)} 100%{background:transparent}}
 .rend{display:grid; justify-items:center; gap:10px; text-align:center; padding:12px 0 30px}
 
 /* sheet */
@@ -583,7 +586,7 @@ const DEMO = {
 
 /* ---------- prizes ---------- */
 const PRIZE_TYPES = {daily:'Ежедневный сундук', streak:'Огненный сундук'};
-const STREAK_DAYS = 5, MAX_WRONG = 4, MAX_BANK_PER_DAY = 2;
+const STREAK_DAYS = 5, MAX_WRONG = 3, MAX_BANK_PER_DAY = 2;
 const PRIZE_IDEAS = [['Конфета', 'daily'], ['Наклейка', 'daily'], ['Мороженое', 'daily'], ['Выбрать мультик', 'daily'], ['Не мыть посуду сегодня', 'daily'], ['Лечь спать на 20 минут позже', 'daily'], ['Поход в кафе', 'streak'], ['Новая книга', 'streak'], ['Поход в кино', 'streak']];
 const prizeVis = p => p.type === 'streak' ? 4 : p.type === 'daily' ? 2 : (p.tier || 2);
 const bankCfg = () => Object.assign({name:'минут игры', per:10}, S.family.bank || {});
@@ -1572,11 +1575,28 @@ async function loadEarlier(){
   } catch (e) { toast('Не получилось загрузить главу'); }
   finally { r.loadingEarlier = false; }
 }
+// Where the answer to a question sits in today's text, and a place 5–6 sentences above it to start rereading from
+function quoteSpot(quote){
+  const r = S.reader, list = [];
+  if (!quote || !r || !r.ready) return null;
+  for (let c = r.from; r.chs[c]; c++){
+    let g = chWordStart(r.book, c);
+    r.chs[c].forEach((p, i) => { list.push({c, i, g, p}); g += countWords([p]); });
+  }
+  const from = r.gate ? r.gate.from : 0;
+  const at = list.findIndex(x => x.g < r.end && x.g + countWords([x.p]) > from && typeof x.p === 'string' && quoteFound(quote, normTxt(x.p)));
+  if (at < 0) return null;
+  const sentences = p => typeof p === 'string' ? (p.match(/[.!?…]+(\s|$)/g) || []).length || 1 : 0;
+  let start = at, n = 0;
+  while (start > 0 && n < 5 && list[start - 1].g + countWords([list[start - 1].p]) > from){ start--; n += sentences(list[start].p); }
+  return {pos:list[start].g, key:list[at].c + '_' + list[at].i};
+}
 function placeReader(entering){
   const r = S.reader;
   if (!r.ready || !(entering || r.jump)) return;
   r.jump = false;
   scrollToPos(r.pos);
+  if (r.flash){ const [c, i] = r.flash.split('_'), el = $(`.page [data-c="${c}"][data-p="${i}"]`); if (el) el.classList.add('flash'); r.flash = null; }
   readerScrolled();
 }
 
@@ -1613,7 +1633,7 @@ function scrQuiz(){
     <div class="eyebrow">Вопрос ${q.idx + 1} из ${q.qs.length} · ${(q.totalWrong || 0) > MAX_WRONG ? `ошибок ${q.totalWrong} — больше ${MAX_WRONG}` : `ошибок ${q.totalWrong || 0} из ${MAX_WRONG}`}</div>
     <h2 class="qtext">${esc(cur.q)}</h2>
     <div class="opts">${cur.options.map((o, i) => { const st = q.solved && i === cur.answer ? 'right' : q.wrong.includes(i) ? 'wrong' : ''; return `<button class="opt ${st}" data-act="answer" data-i="${i}" ${q.solved || q.wrong.includes(i) ? 'disabled' : ''}>${esc(o)}</button>`; }).join('')}</div>
-    ${q.wrong.length && !q.solved ? `<div class="hint"><b>Подсказка.</b> ${esc(cur.hint || 'Загляни в текст ещё раз.')} <button class="btn small alt" data-act="backToText" style="margin-left:6px">Перечитать в книге</button></div>` : ''}
+    ${q.wrong.length && !q.solved ? `<div class="hint"><b>Подсказка.</b> ${esc(cur.hint || 'Загляни в текст ещё раз.')} <button class="btn small alt" data-act="rereadHint" style="margin-left:6px">Перечитать в книге</button></div>` : ''}
     ${q.solved ? `<div class="praise">${esc(q.praise)}</div><div><button class="btn big" data-act="nextQ">${last ? 'Посмотреть результат' : 'Следующий вопрос'}</button></div>` : ''}
   </div>`;
 }
@@ -1773,7 +1793,7 @@ async function startQuiz(){
     // Questions follow the story; only the answers are shuffled
     const qs = doc.questions.map(q => {
       const order = shuffle(q.options.map((_, i) => i));
-      return {q:q.q, hint:q.hint, options:order.map(i => q.options[i]), answer:order.indexOf(q.answer)};
+      return {q:q.q, hint:q.hint, quote:q.quote || '', options:order.map(i => q.options[i]), answer:order.indexOf(q.answer)};
     });
     S.quiz = {qs, idx:0, wrong:[], solved:false, firstOk:0, praise:'', totalWrong:0, bookId:r.book.id, from:g.from, isRetry:attempt > 0};
   } catch (e) {
@@ -2017,6 +2037,11 @@ const A = {
     if (!S.kd.books[b.id].finished) openReader(b); else go('home');
   },
   backToText(){ go('reader'); },
+  rereadHint(){
+    const q = S.quiz, spot = q && q.qs && quoteSpot(q.qs[q.idx].quote);
+    if (spot){ S.reader.pos = spot.pos; S.reader.flash = spot.key; }
+    go('reader');
+  },
   answer(el){
     const q = S.quiz, cur = q.qs[q.idx], i = +el.dataset.i;
     if (q.solved) return;
