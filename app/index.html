@@ -1361,7 +1361,8 @@ function scrHome(){
   const tabs = [['shelf', 'Полка'], ['library', 'Библиотека'], ['prizes', 'Мои призы' + (waiting ? ' · ' + waiting : '')], ['words', 'Словарик · ' + kd.words.length]];
   let body;
   if (S.homeTab === 'shelf'){
-    const started = books.filter(b => { const bp = kd.books[b.id] || {}; return (bp.globalWordsRead > 0) || (bp.done && bp.done.length > 0); });
+    // Any book the child has opened counts as started; the current one goes first
+    const started = books.filter(b => kd.books[b.id] || kd.last === b.id).sort((x, y) => (y.id === kd.last) - (x.id === kd.last));
     if (started.length){
       body = `<div class="shelf">${started.map(b => { const p = bookProg(b.id), totalBW = bookTotalWords(b), pct = totalBW > 0 ? Math.min(100, Math.round(p.globalWordsRead / totalBW * 100)) : 0; return `<button class="bookbtn" data-act="openBook" data-id="${b.id}">${cover(b)}<span class="meta">${p.finished ? '<span class="badge">Прочитана</span>' : pct + '%'}</span></button>`; }).join('')}</div>`;
     } else {
