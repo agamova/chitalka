@@ -183,8 +183,11 @@ legend{font-weight:700; font-size:14px; margin-bottom:6px}
 .cover{--h:210; aspect-ratio:3/4; max-width:100%; border-radius:6px 12px 12px 6px; padding:14px 12px 12px 18px; background:hsl(var(--h) 45% 38%);
   color:#FFFFFF; display:flex; flex-direction:column; justify-content:space-between; position:relative; overflow:hidden;
   box-shadow:inset 7px 0 0 rgba(0,0,0,.2), 0 6px 14px rgba(0,0,0,.15)}
-.cover::after{content:""; position:absolute; right:-30%; bottom:-20%; width:90%; aspect-ratio:1; border-radius:50%; background:rgba(255,255,255,.1)}
-.cover b{font-family:'Unbounded','Nunito',sans-serif; font-weight:700; font-size:16px; line-height:1.15; position:relative; z-index:1; overflow-wrap:anywhere}
+.cover .cvart{position:absolute; left:0; right:0; bottom:0; width:100%; height:auto; display:block}
+.cover.img{padding:0; background:var(--surface-2)}
+.cover.img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block}
+.cover b{font-family:'Unbounded','Nunito',sans-serif; font-weight:700; font-size:16px; line-height:1.15; position:relative; z-index:1; overflow-wrap:anywhere; margin-bottom:auto}
+.cover > span:not(.cvart){margin-top:6px}
 .cover span{font-size:12px; font-weight:700; opacity:.85; position:relative; z-index:1}
 .cover.sm{width:84px; flex:none; padding:8px 6px 8px 12px}
 .cover.sm b{font-size:11px}
@@ -368,8 +371,8 @@ body[data-kt] .chest-gate-btn{background:var(--surface); border:0; border-radius
 body[data-kt] .hint{background:color-mix(in srgb, var(--gold) 14%, var(--surface)); border-radius:18px}
 body[data-kt] .qdots i.on{background:var(--gold)}
 body[data-kt] .praise{color:var(--accent)}
-body[data-kt] .cover{border-radius:6px 10px 10px 6px; box-shadow:inset 7px 0 0 rgba(0,0,0,.16); background:color-mix(in srgb, hsl(var(--h) 50% 45%) 22%, var(--accent))}
-body[data-kt] .bookbtn:nth-child(even) .cover{background:color-mix(in srgb, hsl(var(--h) 50% 45%) 25%, var(--c1))}
+body[data-kt] .cover{border-radius:6px 10px 10px 6px; box-shadow:inset 7px 0 0 rgba(0,0,0,.16)}
+body[data-kt] .cover.img{box-shadow:0 2px 0 rgba(0,0,0,.06)}
 body[data-kt] .cover b{font-family:'Onest',sans-serif; font-weight:800}
 body[data-kt] .fsz button{border-radius:12px}
 
@@ -830,7 +833,25 @@ function parseFb2(xml){
     flush();
   }
   bodies.forEach(b => walk(b, ''));
-  return {title, author, chapters};
+  let cover = null;
+  const cimg = byName(byName(ti, 'coverpage')[0], 'image')[0];
+  if (cimg){
+    const ref = (cimg.getAttribute('l:href') || cimg.getAttribute('xlink:href') || Array.from(cimg.attributes).map(x => x.value).find(v => v.startsWith('#')) || '').replace(/^#/, '');
+    const bin = byName(doc, 'binary').find(e => e.getAttribute('id') === ref);
+    if (bin) cover = `data:${bin.getAttribute('content-type') || 'image/jpeg'};base64,${bin.textContent.replace(/\s+/g, '')}`;
+  }
+  return {title, author, chapters, cover};
+}
+// Shrinks a cover to a small JPEG so it can live inside the book record
+async function shrinkCover(src){
+  try {
+    const im = new Image(); im.src = src; await im.decode();
+    const w = Math.min(360, im.naturalWidth), h = Math.round(im.naturalHeight * w / im.naturalWidth);
+    if (!w || !h || h / w > 3 || w / h > 2) return null;
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.drawImage(im, 0, 0, w, h);
+    return cv.toDataURL('image/jpeg', .82);
+  } catch (e) { return null; }
 }
 function joinPath(base, href){
   const out = [];
@@ -900,7 +921,14 @@ async function parseEpub(buf){
   const title = nodeText(all.find(e => e.localName === 'title')) || 'Без названия';
   const author = nodeText(all.find(e => e.localName === 'creator'));
   const manifest = {};
-  all.filter(e => e.localName === 'item').forEach(e => { manifest[e.getAttribute('id')] = e.getAttribute('href'); });
+  const items = all.filter(e => e.localName === 'item');
+  items.forEach(e => { manifest[e.getAttribute('id')] = e.getAttribute('href'); });
+  const isImg = e => /^image\//.test(e.getAttribute('media-type') || '') || /\.(jpe?g|png|gif|webp)$/i.test(e.getAttribute('href') || '');
+  const metaCover = all.find(e => e.localName === 'meta' && e.getAttribute('name') === 'cover');
+  const coverItem = items.find(e => /\bcover-image\b/.test(e.getAttribute('properties') || ''))
+    || (metaCover && items.find(e => e.getAttribute('id') === metaCover.getAttribute('content') && isImg(e)))
+    || items.find(e => isImg(e) && /cover|obloz/i.test((e.getAttribute('id') || '') + (e.getAttribute('href') || '')));
+  const coverImg = coverItem ? await epubReadImg(zip, base, coverItem.getAttribute('href')) : null;
   const spine = all.filter(e => e.localName === 'itemref').map(e => manifest[e.getAttribute('idref')]).filter(Boolean);
   const chapters = [];
   for (const href of spine){
@@ -925,7 +953,7 @@ async function parseEpub(buf){
     const body2 = paras.filter((p, i) => !(i < 3 && typeof p === 'string' && tl && tl.includes(p.toLowerCase())));
     chapters.push({title, paras:body2});
   }
-  return {title, author, chapters};
+  return {title, author, chapters, cover:coverImg && coverImg.img};
 }
 function splitParas(paras){
   const out = [];
@@ -976,6 +1004,7 @@ async function saveBook(book){
   const id = newId();
   const meta = {kind:'book', id, title:String(book.title || 'Без названия').slice(0, 160), author:String(book.author || '').slice(0, 120), ageMin:5, ageMax:16,
     chapters:chs.map(c => ({title:c.title.slice(0, 140), words:countWords(c.paras)})), addedAt:Date.now()};
+  if (book.cover){ const c = await shrinkCover(book.cover); if (c) meta.cover = c; }
   for (let i = 0; i < chs.length; i++){
     setImport('Сохраняю главы: ' + (i + 1) + ' из ' + chs.length + '…');
     await Store.set('bch_' + id + '_' + i, {kind:'chapter', book:id, i, paras:chs[i].paras});
@@ -1031,7 +1060,20 @@ function readKidForm(){
   return {name:name.trim().slice(0, 20), age, color:c ? +c.value : 0};
 }
 const ava = (k, big) => `<span class="ava ${big ? 'big' : ''}" style="--c:${COLORS[k.color] || COLORS[0]}" aria-hidden="true">${esc((k.name || '?').slice(0, 1).toUpperCase())}</span>`;
-const cover = (b, sm) => `<span class="cover ${sm ? 'sm' : ''}" style="--h:${hue(b.title)}"><b>${esc(b.title)}</b><span>${esc(b.author || '')}</span></span>`;
+// The book's own cover when the file had one; otherwise a drawn cover in the app palette with one of a few flat landscapes
+const COVER_TONES = [['#3D5FE0', '#2C47B8', '#E07A5F'], ['#D2694F', '#B2523A', '#3D5FE0'], ['#1F2560', '#2E3880', '#E07A5F'], ['#5A6FE6', '#3D52C4', '#F4C9B6'], ['#A8492F', '#8C3B25', '#F4C9B6']];
+const COVER_ART = [
+  (a, b, c) => `<circle cx="88" cy="26" r="13" fill="${c}"/><path d="M0 70C20 52 40 50 62 60 80 50 102 44 120 54V90H0Z" fill="${b}"/><path d="M0 80C30 66 60 70 90 64 104 62 114 64 120 66V90H0Z" fill="rgba(0,0,0,.18)"/>`,
+  (a, b, c) => `<path d="M0 62Q15 56 30 62T60 62 90 62 120 62V90H0Z" fill="${b}"/><path d="M0 74Q15 68 30 74T60 74 90 74 120 74V90H0Z" fill="rgba(0,0,0,.2)"/><path d="M58 58h28l-6 8H62Z" fill="${c}"/><path d="M70 24v32h16Z" fill="rgba(255,255,255,.85)"/><path d="M68 30v26H54Z" fill="rgba(255,255,255,.55)"/>`,
+  (a, b, c) => `<path d="M84 12a14 14 0 1 0 12 22 11 11 0 0 1-12-22z" fill="${c}"/><circle cx="30" cy="20" r="1.6" fill="#fff"/><circle cx="52" cy="10" r="1.2" fill="#fff"/><circle cx="108" cy="46" r="1.4" fill="#fff"/><path d="M10 90V58l14-10 14 10v32ZM46 90V50l16-12 16 12v40ZM86 90V62l12-8 12 8v28Z" fill="${b}"/><rect x="58" y="58" width="8" height="8" fill="${c}"/><rect x="20" y="64" width="7" height="7" fill="${c}" opacity=".8"/>`,
+  (a, b, c) => `<circle cx="30" cy="26" r="11" fill="${c}"/><path d="M14 90L34 44 54 90ZM44 90L68 32 92 90ZM80 90L100 50 120 90Z" fill="${b}"/><path d="M0 84H120V90H0Z" fill="rgba(0,0,0,.2)"/>`,
+  (a, b, c) => `<path d="M60 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="${c}"/><path d="M24 22l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="#fff" opacity=".8"/><path d="M98 40l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="#fff" opacity=".7"/><path d="M20 66q20-10 40 0 20-10 40 0v20q-20-10-40 0-20-10-40 0Z" fill="${b}"/><path d="M24 64q18-8 34 0v18q-16-8-34 0Z" fill="#fff" opacity=".9"/><path d="M62 64q16-8 34 0v18q-18-8-34 0Z" fill="#fff" opacity=".75"/>`
+];
+const cover = (b, sm) => {
+  if (b.cover) return `<span class="cover img ${sm ? 'sm' : ''}"><img src="${b.cover}" alt="" loading="lazy"></span>`;
+  const h = hashStr(b.title + (b.author || '')), [a, d, c] = COVER_TONES[h % COVER_TONES.length], art = COVER_ART[(h >> 3) % COVER_ART.length];
+  return `<span class="cover ${sm ? 'sm' : ''}" style="background:${a}"><svg class="cvart" viewBox="0 0 120 90" aria-hidden="true">${art(a, d, c)}</svg><b>${esc(b.title)}</b><span>${esc(b.author || '')}</span></span>`;
+};
 
 function scrLoading(){ return `<div class="loading"><div><div class="logo">Чит<i>а</i>лка</div><p class="muted">Открываю библиотеку…</p></div></div>`; }
 
