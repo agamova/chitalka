@@ -735,39 +735,85 @@ function needAi(){ if (!Store.sample) throw {code:'no_ai'}; }
 const cleanQs = list => (Array.isArray(list) ? list : []).filter(q =>
   q && typeof q.q === 'string' && Array.isArray(q.options) && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length
 ).map(q => ({q:q.q, options:q.options.map(String), answer:q.answer, hint:String(q.hint || '')}));
+// The words this sitting covers: from where the child stopped last time to the end of the paragraph with the chest.
+// A short tail of the chapter (under 150 words) is counted too, so nobody comes back for two sentences.
+function sittingRange(book, ch, paras){
+  const from = bookProg(book.id).globalWordsRead, chStart = chWordStart(book, ch), chEnd = chStart + countWords(paras);
+  const goal = from + wordsPerChest(S.kid) - chStart;
+  let w = 0, to = chEnd;
+  for (const p of paras){ w += countWords([p]); if (w >= goal){ to = chStart + w; break; } }
+  if (chEnd - to < 150) to = chEnd;
+  return {from:Math.min(from, to), to};
+}
+// Paragraphs of the book between two global word positions, across chapter borders
+async function textBetween(book, from, to){
+  const out = [];
+  for (let c = 0, start = 0; c < book.chapters.length && start < to; start += book.chapters[c].words || 0, c++){
+    const end = start + (book.chapters[c].words || 0);
+    if (end <= from) continue;
+    let w = start;
+    for (const p of await chapterParas(book, c)){
+      const n = countWords([p]);
+      if (typeof p === 'string' && w + n > from && w < to) out.push(p);
+      w += n;
+    }
+  }
+  return out.join('\n');
+}
+// Tolerant text match: lower case, ё→е, letters and digits only
+const normTxt = t => String(t).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/g, ' ').trim();
+// The quote must really be in what the child read: whole, or at least four words in a row
+function quoteFound(quote, normText){
+  const q = normTxt(quote).split(' ').filter(Boolean);
+  if (q.length < 3) return false;
+  if (normText.includes(q.join(' '))) return true;
+  for (let i = 0; i + 4 <= q.length; i++) if (normText.includes(q.slice(i, i + 4).join(' '))) return true;
+  return false;
+}
+// The model names the right answer as text (not a number it can get wrong); the app shuffles later
+function readQs(list, normText){
+  const qs = (Array.isArray(list) ? list : []).filter(x => x && typeof x.q === 'string' && typeof x.right === 'string' && Array.isArray(x.wrong) && x.wrong.length >= 2)
+    .map(x => ({q:x.q, options:[x.right].concat(x.wrong.slice(0, 3)).map(String), answer:0, hint:String(x.hint || ''), quote:String(x.quote || '')}))
+    .filter(x => new Set(x.options.map(normTxt)).size === x.options.length);
+  const grounded = qs.filter(x => quoteFound(x.quote, normText));
+  return grounded.length >= 5 ? grounded : qs;
+}
 // Один запрос даёт две серии вопросов: первая — для первой попытки, вторая — для пересдачи
 const quizInflight = {};
-function getQuiz(book, ch, attempt = 0, avoid = []){
-  const b = band(S.kid.age), variant = Math.floor(attempt / 2);
-  const id = 'quiz_' + book.id + '_' + ch + '_' + b + (variant ? '_r' + variant : '');
-  if (!quizInflight[id]) quizInflight[id] = loadQuizDoc(book, ch, id, variant ? avoid : []).finally(() => { delete quizInflight[id]; });
-  return quizInflight[id].then(doc => ({questions:attempt % 2 ? doc.questions2 : doc.questions}));
+async function getQuiz(book, ch, attempt = 0, avoid = []){
+  const b = band(S.kid.age), variant = Math.floor(attempt / 2), range = sittingRange(book, ch, await chapterParas(book, ch));
+  const id = 'quiz_' + book.id + '_' + ch + '_' + b + '_w' + range.from + (variant ? '_r' + variant : '');
+  if (!quizInflight[id]) quizInflight[id] = loadQuizDoc(book, ch, id, range, variant ? avoid : []).finally(() => { delete quizInflight[id]; });
+  const doc = await quizInflight[id];
+  return {questions:attempt % 2 ? doc.questions2 : doc.questions};
 }
-async function loadQuizDoc(book, ch, id, avoid){
+async function loadQuizDoc(book, ch, id, range, avoid){
   const cached = await Store.get(id).catch(() => null);
-  if (cached && cleanQs(cached.questions).length >= 8 && cleanQs(cached.questions2).length >= 8) return cached;
+  if (cached && cleanQs(cached.questions).length >= 5 && cleanQs(cached.questions2).length >= 5) return cached;
   needAi();
   const age = S.kid.age, b = band(age);
-  const paras = await chapterParas(book, ch);
-  const text = paras.filter(p => typeof p === 'string').join('\n').slice(0, 40000);
+  const text = (await textBetween(book, range.from, range.to)).slice(0, 40000);
   const k = b === 'l' ? 12 : b === 'm' ? 11 : 10;
   const prompt =
-`Ты внимательный учитель литературы. Нужно проверить, прочитал ли ребёнок ${years(age)} главу книги.
-Книга: «${book.title}»${book.author ? ', ' + book.author : ''}. Глава ${ch + 1}: «${book.chapters[ch].title}».
-Текст главы:
+`Ты внимательный учитель литературы. Нужно проверить, прочитал ли ребёнок ${years(age)} отрывок книги.
+Книга: «${book.title}»${book.author ? ', ' + book.author : ''}.
+Вот ровно тот отрывок, который ребёнок прочитал сегодня. Дальше он ещё не читал:
 """
 ${text}
 """
 
-Составь две независимые серии вопросов: questions и questions2, в каждой ровно ${k} вопросов. Вопросы во второй серии должны касаться других деталей главы и не повторять первую.
-Каждый вопрос проверяет, что ребёнок действительно прочитал текст — ответ нельзя угадать, не читая. Спрашивай о конкретных деталях: что именно сказал герой, какой предмет где находился, какое действие произошло после другого, в каком порядке происходили события, что именно решил или сделал герой в конкретный момент. Не задавай абстрактных вопросов вида «как ты думаешь». Сложность и слова — для ребёнка ${years(age)}. У каждого вопроса 4 варианта ответа (options), ровно один верный; answer — номер верного варианта от 0 до 3; неверные варианты правдоподобны и почти неотличимы от верного без чтения. hint — подсказка, в каком месте главы искать ответ, без самого ответа, до 15 слов.
+Составь две независимые серии вопросов: questions и questions2, в каждой ровно ${k} вопросов. Вопросы во второй серии должны касаться других деталей и не повторять первую.
+Спрашивай только о том, что прямо написано в этом отрывке. Не спрашивай о событиях до или после него, о других главах и о том, что знаешь о книге сам.
+Каждый вопрос проверяет, что ребёнок действительно прочитал текст — ответ нельзя угадать, не читая. Спрашивай о конкретных деталях: что именно сказал герой, какой предмет где находился, какое действие произошло после другого, в каком порядке происходили события, что именно решил или сделал герой в конкретный момент. Не задавай абстрактных вопросов вида «как ты думаешь». Сложность и слова — для ребёнка ${years(age)}.
+Для каждого вопроса: right — правильный ответ; wrong — три неверных ответа, правдоподобных, но точно неверных по тексту (ни один не должен оказаться тоже верным); quote — дословная цитата из отрывка, 5–15 слов, в которой виден правильный ответ; hint — подсказка, в каком месте отрывка искать ответ, без самого ответа, до 15 слов.
 ${avoid.length ? '\nРебёнок уже видел вопросы ниже. Не повторяй и не перефразируй их:\n' + avoid.map(x => '- ' + x).join('\n') + '\n' : ''}
 Ответь только JSON такого вида:
-{"questions":[{"q":"...","options":["...","...","...","..."],"answer":0,"hint":"..."}],"questions2":[...]}`;
+{"questions":[{"q":"...","right":"...","wrong":["...","...","..."],"quote":"...","hint":"..."}],"questions2":[...]}`;
   const r = await Store.sample.json(prompt, {modelTier:'default'});
-  const questions = cleanQs(r && r.questions), questions2 = cleanQs(r && r.questions2);
+  const nt = normTxt(text);
+  const questions = readQs(r && r.questions, nt), questions2 = readQs(r && r.questions2, nt);
   if (!questions.length) throw {code:'bad_data'};
-  const doc = {kind:'quiz', book:book.id, ch, band:b, questions, questions2:questions2.length ? questions2 : questions, at:Date.now()};
+  const doc = {kind:'quiz', book:book.id, ch, band:b, from:range.from, to:range.to, questions, questions2:questions2.length ? questions2 : questions, at:Date.now()};
   Store.set(id, doc).catch(() => {});
   return doc;
 }
@@ -1674,13 +1720,10 @@ async function startQuiz(){
 }
 function completeChapter(total, firstOk){
   const r = S.reader, b = r.book;
+  const range = r.paras ? sittingRange(b, r.ch, r.paras) : {to:chWordStart(b, r.ch) + (b.chapters[r.ch].words || 0)};
   const bp = S.kd.books[b.id] = S.kd.books[b.id] || {ch:0, done:[], globalWordsRead:0};
-  const target = WORDS_PER_SESSION(S.kid.age);
-  // Advance global word counter past the flag chapter so nextUnreadCh() returns the next chapter
-  const _chStart = chWordStart(b, r.ch);
-  const _chWords = (r.paras ? countWords(r.paras) : null) || (b.chapters[r.ch].words || 0);
-  const _chEnd = _chStart + _chWords;
-  bp.globalWordsRead = Math.max(_chEnd, (bp.globalWordsRead || 0) + target);
+  // Count exactly what was read this sitting; the rest of the chapter stays to read next time
+  bp.globalWordsRead = Math.max(bp.globalWordsRead || 0, range.to);
   // Keep done[] for hero-chat context (which chapter the quiz was in)
   if (!bp.done) bp.done = [];
   if (!bp.done.includes(r.ch)){ bp.done.push(r.ch); S.kd.stats.chapters++; }
