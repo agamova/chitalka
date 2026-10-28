@@ -78,7 +78,7 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none; -
 .btn[disabled]{opacity:.5; cursor:default}
 :focus-visible{outline:3px solid var(--accent); outline-offset:2px}
 .acts{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
-input,select,textarea{font:inherit; color:var(--ink); background:var(--surface); border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; min-height:46px; width:100%}
+input,select,textarea{box-sizing:border-box; font:inherit; color:var(--ink); background:var(--surface); border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; min-height:46px; width:100%}
 textarea{min-height:120px; resize:vertical}
 label{display:grid; gap:6px; font-weight:700; font-size:14px}
 .panel{background:var(--surface); border:1px solid var(--line); border-radius:calc(var(--radius) + 4px); padding:20px; display:grid; gap:14px; box-shadow:var(--shadow)}
