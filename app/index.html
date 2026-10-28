@@ -201,13 +201,9 @@ legend{font-weight:700; font-size:14px; margin-bottom:6px}
 .dict li b{font-size:19px; font-family:var(--font-read)}
 .dict .src{font-size:12px; color:var(--muted); font-weight:700}
 
-/* session progress bar in reader */
-.sess-prog{display:flex; align-items:center; gap:8px; padding:2px 0 8px}
-.sess-prog .bar{flex:1; height:7px}
-.sess-prog .bar i{background:var(--gold)}
-.sess-prog .sess-label{font-size:12px; font-weight:800; color:var(--muted); white-space:nowrap}
-/* blur: paragraphs after the chest are locked until quiz passed */
-.tx.blurred{filter:blur(5px); user-select:none; pointer-events:none; border-radius:3px}
+/* how far the chest is: a thin line under the reader bar */
+.rprog{position:absolute; left:0; right:0; bottom:0; height:4px; border-radius:2px; background:var(--surface-2); overflow:hidden}
+.rprog i{display:block; height:100%; width:0; background:var(--gold); transition:width .2s}
 /* chest gate in reader text */
 .chest-gate{display:flex; flex-direction:column; align-items:center; gap:8px; padding:28px 0 14px}
 .chest-gate-btn{display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 24px; border-radius:var(--radius); background:color-mix(in srgb,var(--gold) 14%,var(--surface)); border:1.5px solid color-mix(in srgb,var(--gold) 60%,var(--line)); font-weight:800; font-size:15px; color:var(--ink); cursor:pointer; min-height:auto}
@@ -279,10 +275,11 @@ body[data-kt]::before{content:""; position:fixed; inset:0 0 auto; height:env(saf
 .page .chtitle{font-family:var(--font-display); font-size:clamp(24px, 4vw, 32px); margin-bottom:6px}
 .page .tip{font-size:14px; color:var(--muted); font-weight:700; margin-bottom:22px}
 .page p.tx{font-family:var(--font-read); font-size:var(--read-size); line-height:1.65; margin:0 0 .85em; text-indent:1.4em; max-width:65ch; hyphens:auto; -webkit-hyphens:auto}
-.page p.tx:first-of-type{text-indent:0}
+.page .chtitle + p.tx{text-indent:0}
+.page .chtitle:not(:first-of-type){margin-top:1.8em}
+.rmore{display:flex; margin:0 auto 18px}
 .book-img{text-align:center; margin:1em 0; max-width:65ch}
 .book-img img{max-width:100%; border-radius:6px; display:inline-block}
-.book-img.blurred{filter:blur(5px); user-select:none; pointer-events:none}
 .w{cursor:pointer; border-radius:4px; transition:background .15s}
 .w:hover{background:color-mix(in srgb, var(--accent) 12%, transparent)}
 .w.seen{text-decoration:underline; text-decoration-color:color-mix(in srgb, var(--second) 70%, transparent); text-decoration-thickness:2px; text-underline-offset:4px}
@@ -354,7 +351,6 @@ body[data-kt] .opt.right{border-color:var(--ok)}
 body[data-kt] .opt.wrong{border-color:var(--danger)}
 body[data-kt] .bar{background:var(--tint)}
 body[data-kt] .bar i{background:var(--accent)}
-body[data-kt] .sess-prog .bar i{background:var(--gold)}
 body[data-kt] .day i{width:34px; height:34px; border:2px dashed var(--line); font-weight:800}
 body[data-kt] .day.on i{background:var(--accent); border:0; color:var(--on-accent)}
 body[data-kt] .day.today:not(.on) i{border:2.5px solid var(--ink)}
@@ -530,13 +526,14 @@ const wordsUpTo = (paras, idx) => paras.slice(0, idx + 1).reduce((n, p) => n + c
 const chWordStart = (book, ch) => book.chapters.slice(0, ch).reduce((s, c) => s + (c.words || 0), 0);
 // Total word count of a book
 const bookTotalWords = book => book.chapters.reduce((s, c) => s + (c.words || 0), 0);
-// First chapter that contains words not yet covered by globalWordsRead
-function nextUnreadCh(book){
-  const bp = S.kd.books[book.id] || {}, gwr = bp.globalWordsRead || 0;
+// The chapter that holds a given word of the book
+function chAt(book, pos){
   let cum = 0;
-  for (let i = 0; i < book.chapters.length; i++){ cum += book.chapters[i].words || 0; if (cum > gwr) return i; }
+  for (let i = 0; i < book.chapters.length; i++){ cum += book.chapters[i].words || 0; if (cum > pos) return i; }
   return Math.max(0, book.chapters.length - 1);
 }
+// First chapter that contains words not yet covered by globalWordsRead
+const nextUnreadCh = book => chAt(book, (S.kd.books[book.id] || {}).globalWordsRead || 0);
 const PRAISE = ['Верно!', 'Точно!', 'Так и есть!', 'Отлично!', 'В яблочко!'];
 const LOCK = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 
@@ -712,10 +709,13 @@ async function loadBooks(){
   list.sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0));
   S.books = [DEMO].concat(list);
 }
+// Chapters are fetched once per visit: the reader, the chest and the quiz all read the same text
+const parasCache = new Map();
 async function chapterParas(book, i){
   if (book.builtin) return DEMO_TEXT[i] || [];
-  const d = await Store.get('bch_' + book.id + '_' + i);
-  return d && Array.isArray(d.paras) ? d.paras : [];
+  const key = book.id + '_' + i;
+  if (!parasCache.has(key)) parasCache.set(key, Store.get('bch_' + key).then(d => d && Array.isArray(d.paras) ? d.paras : []).catch(e => { parasCache.delete(key); throw e; }));
+  return parasCache.get(key);
 }
 
 /* ---------- AI ---------- */
@@ -735,15 +735,34 @@ function needAi(){ if (!Store.sample) throw {code:'no_ai'}; }
 const cleanQs = list => (Array.isArray(list) ? list : []).filter(q =>
   q && typeof q.q === 'string' && Array.isArray(q.options) && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length
 ).map(q => ({q:q.q, options:q.options.map(String), answer:q.answer, hint:String(q.hint || '')}));
-// The words this sitting covers: from where the child stopped last time to the end of the paragraph with the chest.
-// A short tail of the chapter (under 150 words) is counted too, so nobody comes back for two sentences.
-function sittingRange(book, ch, paras){
-  const from = bookProg(book.id).globalWordsRead, chStart = chWordStart(book, ch), chEnd = chStart + countWords(paras);
-  const goal = from + wordsPerChest(S.kid) - chStart;
-  let w = 0, to = chEnd;
-  for (const p of paras){ w += countWords([p]); if (w >= goal){ to = chStart + w; break; } }
-  if (chEnd - to < 150) to = chEnd;
-  return {from:Math.min(from, to), to};
+// A line of dialogue: starts with a dash
+const isTalk = p => typeof p === 'string' && /^\s*[—–-]/.test(p);
+// Where today's chest stands: always at the end of a paragraph, near the word goal.
+// A chapter end soon after the goal wins; otherwise the first paragraph past the goal that doesn't cut a dialogue.
+async function findGate(book, from){
+  const goal = wordsPerChest(S.kid), total = bookTotalWords(book), ends = [];
+  if (from >= total) return null;
+  for (let c = chAt(book, from), start = chWordStart(book, c); c < book.chapters.length; start += book.chapters[c].words || 0, c++){
+    const paras = await chapterParas(book, c);
+    let w = start, last = null;
+    paras.forEach((p, i) => {
+      w += countWords([p]);
+      if (w > from && typeof p === 'string' && p.trim()) ends.push(last = {at:w, ch:c, talk:isTalk(p) || isTalk(paras[i + 1])});
+    });
+    if (last) last.chEnd = true;
+    if (w - from >= goal * 1.5) break;
+  }
+  const read = e => e.at - from;
+  // Never less than the goal (only the end of the book can make a sitting shorter)
+  let gate = ends.find(e => e.chEnd && read(e) >= goal && read(e) <= goal * 1.5)
+    || ends.find(e => read(e) >= goal && read(e) <= goal * 1.3 && !e.talk)
+    || ends.find(e => read(e) >= goal)
+    || ends[ends.length - 1];
+  if (!gate) return {from, to:total, ch:book.chapters.length - 1};
+  // A short chapter tail is read now, so nobody comes back for two sentences
+  const tail = ends.find(e => e.ch === gate.ch && e.chEnd);
+  if (tail && tail.at - gate.at < 150) gate = tail;
+  return {from, to:gate.at, ch:gate.ch};
 }
 // Paragraphs of the book between two global word positions, across chapter borders
 async function textBetween(book, from, to){
@@ -770,60 +789,81 @@ function quoteFound(quote, normText){
   for (let i = 0; i + 4 <= q.length; i++) if (normText.includes(q.slice(i, i + 4).join(' '))) return true;
   return false;
 }
-// The model names the right answer as text (not a number it can get wrong); the app shuffles later
-function readQs(list, normText){
-  const qs = (Array.isArray(list) ? list : []).filter(x => x && typeof x.q === 'string' && typeof x.right === 'string' && Array.isArray(x.wrong) && x.wrong.length >= 2)
-    .map(x => ({q:x.q, options:[x.right].concat(x.wrong.slice(0, 3)).map(String), answer:0, hint:String(x.hint || ''), quote:String(x.quote || '')}))
+// The model names the right answer as text (not a number it can get wrong); the app shuffles the options later.
+// Questions about numbers and passing details are dropped while enough good ones remain.
+function readQs(list, normText, k){
+  let qs = (Array.isArray(list) ? list : []).filter(x => x && typeof x.q === 'string' && typeof x.right === 'string' && Array.isArray(x.wrong) && x.wrong.length >= 2)
+    .map(x => ({q:x.q, options:[x.right].concat(x.wrong.slice(0, 3)).map(String), answer:0, hint:String(x.hint || ''), quote:String(x.quote || ''), weight:+x.importance || 2}))
     .filter(x => new Set(x.options.map(normTxt)).size === x.options.length);
-  const grounded = qs.filter(x => quoteFound(x.quote, normText));
-  return grounded.length >= 5 ? grounded : qs;
+  const keep = f => { const left = qs.filter(f); if (left.length >= Math.min(k, 4)) qs = left; };
+  keep(x => quoteFound(x.quote, normText));
+  keep(x => !x.options.every(o => /\d/.test(o)));
+  keep(x => x.weight >= 2);
+  if (qs.length > k) qs = qs.filter(x => x.weight >= 3).length >= k ? qs.filter(x => x.weight >= 3) : qs;
+  return qs.slice(0, k).map(({weight, ...x}) => x);
 }
-// Один запрос даёт две серии вопросов: первая — для первой попытки, вторая — для пересдачи
+// One request gives two sets of questions: the first try and the retake
 const quizInflight = {};
-async function getQuiz(book, ch, attempt = 0, avoid = []){
-  const b = band(S.kid.age), variant = Math.floor(attempt / 2), range = sittingRange(book, ch, await chapterParas(book, ch));
-  const id = 'quiz_' + book.id + '_' + ch + '_' + b + '_w' + range.from + (variant ? '_r' + variant : '');
-  if (!quizInflight[id]) quizInflight[id] = loadQuizDoc(book, ch, id, range, variant ? avoid : []).finally(() => { delete quizInflight[id]; });
-  const doc = await quizInflight[id];
-  return {questions:attempt % 2 ? doc.questions2 : doc.questions};
+function getQuiz(book, range, attempt = 0, avoid = []){
+  const b = band(S.kid.age), variant = Math.floor(attempt / 2);
+  const id = 'quiz2_' + book.id + '_' + b + '_' + range.from + '-' + range.to + (variant ? '_r' + variant : '');
+  if (!quizInflight[id]) quizInflight[id] = loadQuizDoc(book, id, range, variant ? avoid : []).finally(() => { delete quizInflight[id]; });
+  return quizInflight[id].then(doc => ({questions:attempt % 2 ? doc.questions2 : doc.questions}));
 }
-async function loadQuizDoc(book, ch, id, range, avoid){
+async function loadQuizDoc(book, id, range, avoid){
   const cached = await Store.get(id).catch(() => null);
-  if (cached && cleanQs(cached.questions).length >= 5 && cleanQs(cached.questions2).length >= 5) return cached;
+  if (cached && cleanQs(cached.questions).length >= 4 && cleanQs(cached.questions2).length >= 4) return cached;
   needAi();
   const age = S.kid.age, b = band(age);
   const text = (await textBetween(book, range.from, range.to)).slice(0, 40000);
-  const k = b === 'l' ? 12 : b === 'm' ? 11 : 10;
+  const k = b === 'l' ? 8 : b === 'm' ? 7 : 6;
   const prompt =
-`Ты внимательный учитель литературы. Нужно проверить, прочитал ли ребёнок ${years(age)} отрывок книги.
-Книга: «${book.title}»${book.author ? ', ' + book.author : ''}.
-Вот ровно тот отрывок, который ребёнок прочитал сегодня. Дальше он ещё не читал:
+`Ты придумываешь вопросы-викторину по книгам для детей. Ребёнок ${years(age)} только что прочитал отрывок из книги «${book.title}»${book.author ? ', ' + book.author : ''}. Вопросы должны проверить, что он прочитал и понял историю, — и чтобы отвечать было интересно.
+Вот отрывок. Дальше ребёнок ещё не читал:
 """
 ${text}
 """
 
-Составь две независимые серии вопросов: questions и questions2, в каждой ровно ${k} вопросов. Вопросы во второй серии должны касаться других деталей и не повторять первую.
-Спрашивай только о том, что прямо написано в этом отрывке. Не спрашивай о событиях до или после него, о других главах и о том, что знаешь о книге сам.
-Каждый вопрос проверяет, что ребёнок действительно прочитал текст — ответ нельзя угадать, не читая. Спрашивай о конкретных деталях: что именно сказал герой, какой предмет где находился, какое действие произошло после другого, в каком порядке происходили события, что именно решил или сделал герой в конкретный момент. Не задавай абстрактных вопросов вида «как ты думаешь». Сложность и слова — для ребёнка ${years(age)}.
-Для каждого вопроса: right — правильный ответ; wrong — три неверных ответа, правдоподобных, но точно неверных по тексту (ни один не должен оказаться тоже верным); quote — дословная цитата из отрывка, 5–15 слов, в которой виден правильный ответ; hint — подсказка, в каком месте отрывка искать ответ, без самого ответа, до 15 слов.
+Сначала про себя найди в отрывке главное: что произошло, кто что сделал и почему, какие решения приняли герои, что они придумали, узнали, поняли или почувствовали (если это сказано в тексте), какие были повороты, смешные и яркие моменты, чем закончилась сцена.
+Составь две независимые серии вопросов: questions и questions2, в каждой по ${k + 2} вопросов. Вторая серия — про другие моменты отрывка и не повторяет первую.
+
+Хороший вопрос:
+- про то, что запомнит любой внимательный читатель: событие, поступок, его причину или последствие, решение героя, развязку сцены;
+- тот, кто читал, отвечает легко; тот, кто не читал, не угадает;
+- звучит живо и понятно ребёнку ${years(age)}, как вопрос интересного учителя, а не экзамен.
+Не задавай такие вопросы:
+- о числах, датах, годах, количестве, возрасте, расстояниях, времени — если только число не главное в сюжете;
+- о мелочах, упомянутых мимоходом: цвет, форма, материал, направление, какая была лестница, что лежало на столе, во что был одет герой;
+- где варианты отличаются одной мелочью (например: «винтовая вниз», «винтовая вверх», «прямая вниз»);
+- «как ты думаешь», о мнении ребёнка, о морали, о том, чего нет в тексте;
+- о событиях за пределами отрывка и о том, что ты знаешь о книге сам.
+
+Для каждого вопроса:
+- right — правильный ответ;
+- wrong — три неверных ответа: другие правдоподобные события, поступки или причины, которые могли бы быть в этой истории, но по тексту неверны. Они явно отличаются от правильного по смыслу, и ни один не может оказаться тоже верным;
+- все четыре варианта короткие (до 10 слов), похожие по длине и стилю;
+- quote — дословная цитата из отрывка, 5–15 слов, где виден правильный ответ;
+- hint — подсказка, в каком месте отрывка искать ответ, без самого ответа, до 15 слов;
+- importance — насколько это важно для истории: 3 — ключевое событие или поступок, 2 — заметный момент, 1 — мелкая деталь.
+Вопросы идут в том порядке, в каком события происходят в отрывке.
 ${avoid.length ? '\nРебёнок уже видел вопросы ниже. Не повторяй и не перефразируй их:\n' + avoid.map(x => '- ' + x).join('\n') + '\n' : ''}
 Ответь только JSON такого вида:
-{"questions":[{"q":"...","right":"...","wrong":["...","...","..."],"quote":"...","hint":"..."}],"questions2":[...]}`;
+{"questions":[{"q":"...","right":"...","wrong":["...","...","..."],"quote":"...","hint":"...","importance":3}],"questions2":[...]}`;
   const r = await Store.sample.json(prompt, {modelTier:'default'});
   const nt = normTxt(text);
-  const questions = readQs(r && r.questions, nt), questions2 = readQs(r && r.questions2, nt);
+  const questions = readQs(r && r.questions, nt, k), questions2 = readQs(r && r.questions2, nt, k);
   if (!questions.length) throw {code:'bad_data'};
-  const doc = {kind:'quiz', book:book.id, ch, band:b, from:range.from, to:range.to, questions, questions2:questions2.length ? questions2 : questions, at:Date.now()};
+  const doc = {kind:'quiz', book:book.id, band:b, from:range.from, to:range.to, questions, questions2:questions2.length ? questions2 : questions, at:Date.now()};
   Store.set(id, doc).catch(() => {});
   return doc;
 }
-// Готовим вопросы заранее, пока ребёнок читает главу
+// Questions are prepared while the child is still reading
 const quizPrefetched = new Set();
-function prefetchQuiz(book, ch){
-  const key = book.id + '_' + ch + '_' + S.kid.id;
+function prefetchQuiz(book, range){
+  const key = book.id + '_' + range.from + '_' + S.kid.id;
   if (quizPrefetched.has(key)) return;
   quizPrefetched.add(key);
-  getQuiz(book, ch, failedAttempts(book.id, ch)).catch(() => quizPrefetched.delete(key));
+  getQuiz(book, range, failedAttempts(book.id, range.from)).catch(() => quizPrefetched.delete(key));
 }
 
 /* ---------- import: TXT, FB2, EPUB ---------- */
@@ -1395,13 +1435,11 @@ function scrHome(){
   if (last){
     const p = bookProg(last.id), totalBW = bookTotalWords(last);
     const pct = totalBW > 0 ? Math.min(100, Math.round(p.globalWordsRead / totalBW * 100)) : 0;
-    const nextCh = nextUnreadCh(last);
-    const contCh = last.chapters[nextCh] ? nextCh : Math.max(0, last.chapters.length - 1);
     cont = `<div class="cont">${cover(last, true)}<div class="info"><div class="eyebrow">${p.finished ? 'Прочитана' : 'Сейчас читаю'}</div><h2>${esc(last.title)}</h2>
       <div class="muted">${p.finished ? 'Вся книга прочитана' : pct > 0 ? pct + '% прочитано' : 'Только начинаем'}</div><div class="bar"><i style="width:${pct}%"></i></div>
-      <div><button class="btn" data-act="readCh" data-id="${last.id}" data-ch="${contCh}">${p.finished ? 'Открыть книгу' : 'Читать дальше'}</button></div></div></div>`;
+      <div><button class="btn" data-act="readBook" data-id="${last.id}">${p.finished ? 'Открыть книгу' : 'Читать дальше'}</button></div></div></div>`;
   } else {
-    cont = `<div class="cont"><div class="info"><div class="eyebrow">С чего начать</div><h2>Выбери книгу</h2><div class="muted">Нажимай на непонятные слова — я объясню. После главы будут вопросы и сундук с призом.</div></div></div>`;
+    cont = `<div class="cont"><div class="info"><div class="eyebrow">С чего начать</div><h2>Выбери книгу</h2><div class="muted">Нажимай на непонятные слова — я объясню. Прочитаешь норму — будут вопросы и сундук с призом.</div></div></div>`;
   }
   const waiting = kd.prizes.filter(p => !p.given).length;
   const tabs = [['shelf', 'Полка'], ['library', 'Библиотека'], ['prizes', 'Мои призы' + (waiting ? ' · ' + waiting : '')], ['words', 'Словарик · ' + kd.words.length]];
@@ -1441,107 +1479,122 @@ function scrHome(){
 function wordify(p){
   return p.split(/([A-Za-zА-Яа-яЁё]+(?:[-’'][A-Za-zА-Яа-яЁё]+)*)/g).map((t, i) => i % 2 ? `<span class="w">${esc(t)}</span>` : esc(t)).join('');
 }
+// The reader is one scrolling text: from a chapter above the child's place down to today's chest
 function scrReader(){
-  const r = S.reader, b = r.book, n = b.chapters.length, p = bookProg(b.id);
+  const r = S.reader, b = r.book, n = b.chapters.length;
+  const bar = `<header class="rbar"><button class="btn alt small" data-act="toHome">← Полка</button>
+      <div class="rtitle"><b>${esc(b.title)}</b><span id="rch">Глава ${chAt(b, r.pos || 0) + 1} из ${n}</span></div>
+      <div class="fsz"><button data-act="font" data-d="-1" aria-label="Буквы меньше">А−</button><button data-act="font" data-d="1" aria-label="Буквы больше">А+</button></div>
+      ${r.mode === 'gate' ? '<div class="rprog" title="До сундука"><i id="sessBar"></i></div>' : ''}</header>`;
+  if (r.err) return `<div class="reader">${bar}<div class="center" style="min-height:40vh"><p class="err">Не получилось открыть книгу. Проверь интернет и попробуй ещё раз.</p><button class="btn" data-act="readBook" data-id="${b.id}">Попробовать ещё раз</button></div></div>`;
+  if (!r.ready) return `<div class="reader">${bar}<div class="center" style="min-height:40vh"><div class="spinner"></div><p class="muted">Открываю книгу…</p></div></div>`;
   const seen = new Set(S.kd.words.filter(w => w.bookId === b.id).map(w => w.raw));
-  const totalWords = r.paras ? countWords(r.paras) : 0;
-  const target = wordsPerChest(S.kid);
-  const gwr = p.globalWordsRead;
-  const chStart = chWordStart(b, r.ch);
-
-  // Find where the chest gate falls within this chapter
-  const flagWordInCh = (gwr + target) - chStart;
-  let flagPara = -1;
-  if (r.paras && flagWordInCh > 0 && flagWordInCh <= totalWords){
-    let w = 0;
-    for (let i = 0; i < r.paras.length; i++){
-      w += countWords([r.paras[i]]);
-      if (w >= flagWordInCh){ flagPara = i; break; }
+  const parts = [r.from > 0 ? '<button class="btn alt small rmore" data-act="loadEarlier">↑ Предыдущая глава</button>' : '', '<p class="tip">Нажми на непонятное слово, и я объясню, что оно значит.</p>'];
+  for (let c = r.from, g = chWordStart(b, r.from); c < n && r.chs[c] && g < r.end; c++){
+    parts.push(`<h2 class="chtitle" data-c="${c}" data-p="-1" data-g="${g}">${esc(b.chapters[c].title)}</h2>`);
+    for (let i = 0; i < r.chs[c].length && g < r.end; i++){
+      const x = r.chs[c][i], at = `data-c="${c}" data-p="${i}" data-g="${g}"`;
+      parts.push(x && typeof x === 'object' && x.img ? `<div class="book-img" ${at}><img src="${x.img}" alt=""></div>` : `<p class="tx" ${at}>${wordify(x)}</p>`);
+      g += countWords([x]);
     }
-    if (flagPara === -1) flagPara = r.paras.length - 1;
+    g = chWordStart(b, c + 1);
   }
-
-  // If no chest found but this is the last chapter and not yet done, place it at the last para
-  if (r.paras && flagPara === -1 && r.ch === n - 1 && gwr < chStart + totalWords){
-    flagPara = r.paras.length - 1;
+  const home = '<button class="btn alt" data-act="toHome">К книгам</button>';
+  if (r.mode === 'finished') parts.push(`<div class="chest-gate">${ico('book', 'kicon')}<b style="font-size:18px">Конец книги</b><p class="muted" style="margin:0">Ты прочитал её целиком!</p>${home}</div>`);
+  else if (r.mode === 'locked') parts.push(`<div class="chest-gate">${ico('moon', '').replace('<svg ', '<svg style="width:48px;height:48px" ')}<b style="font-size:18px">На сегодня норма выполнена!</b><p class="muted" style="margin:0;text-align:center;max-width:34ch">Продолжение откроется завтра. Отдыхай — книга подождёт.</p>${home}</div>`);
+  else {
+    const failed = failedAttempts(b.id, r.gate.from);
+    const resume = S.quiz && S.quiz.qs && !S.quiz.finished && S.quiz.bookId === b.id && S.quiz.from === r.gate.from;
+    const label = resume ? `Вернуться к вопросу ${S.quiz.idx + 1}` : failed ? 'Пройти новые вопросы — пополнить копилку' : 'Открой сундук — ответь на вопросы';
+    const note = failed ? `<p class="muted" style="font-size:13px;margin:0;text-align:center;max-width:36ch">Сундук сгорел. Перечитай отрывок внимательно — за новые вопросы получишь ${bankCfg().per} ${esc(bankCfg().name)}.</p>` : '';
+    parts.push(`<div class="chest-gate" id="gate">${note}<button class="chest-gate-btn" data-act="startQuiz">${chestSVG()}<span>${label}</span></button></div>`);
   }
-
-  const done = totalWords > 0 && gwr >= chStart + totalWords;
-  const needsContinue = !done && flagPara === -1 && totalWords > 0;
-
-  // Дневная норма выполнена — всё непрочитанное закрыто до завтра
-  const dayLocked = !done && totalWords > 0 && bankToday() >= MAX_BANK_PER_DAY;
-  let lockPara = -1;
-  if (dayLocked && r.paras){
-    const readInCh = gwr - chStart; let w = 0; lockPara = r.paras.length;
-    for (let i = 0; i < r.paras.length; i++){ if (w >= readInCh){ lockPara = i; break; } w += countWords([r.paras[i]]); }
+  const text = parts.join('').replace(/<span class="w">([^<]+)<\/span>/g, (m, w) => seen.has(w.toLowerCase()) ? `<span class="w seen">${w}</span>` : m);
+  return `<div class="reader">${bar}<article class="page" style="--read-size:${FONT_SIZES[S.kd.font]}px">${text}</article></div>`;
+}
+// The paragraph (or chapter title) where a word position starts
+function elAt(pos){
+  let el = null;
+  for (const e of document.querySelectorAll('.page [data-g]')){ const g = +e.dataset.g; if (g > pos) break; if (!el || g > +el.dataset.g) el = e; }
+  return el;
+}
+const readerTop = () => { const h = $('.rbar'); return (h ? h.getBoundingClientRect().bottom : 0) + 12; };
+// The first paragraph not hidden under the sticky bar
+function topVisible(){
+  const els = document.querySelectorAll('.page [data-g]'), top = readerTop();
+  let lo = 0, hi = els.length - 1;
+  while (lo < hi){ const mid = (lo + hi) >> 1; if (els[mid].getBoundingClientRect().bottom > top) hi = mid; else lo = mid + 1; }
+  return els[lo] || null;
+}
+function scrollToPos(pos){
+  const el = elAt(pos);
+  if (!el || pos <= 0 && S.reader.from === 0){ window.scrollTo(0, 0); return; }
+  window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - readerTop());
+}
+// Re-render without the text jumping: the paragraph at the top stays at the top
+function keepPlace(fn){
+  const a = topVisible(), off = a ? a.getBoundingClientRect().top : 0;
+  fn();
+  const b = a && $(`.page [data-c="${a.dataset.c}"][data-p="${a.dataset.p}"]`);
+  if (b) window.scrollBy(0, b.getBoundingClientRect().top - off);
+}
+let scrollRaf = 0, posTimer;
+window.addEventListener('scroll', () => {
+  if (S.screen !== 'reader' || !S.reader || !S.reader.ready || scrollRaf) return;
+  scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; readerScrolled(); });
+}, {passive:true});
+// Remembers the place, shows the chapter and how far the chest is, loads the chapter above when needed
+function readerScrolled(){
+  const r = S.reader, kd = S.kd, top = topVisible();
+  if (!top || S.screen !== 'reader') return;
+  r.pos = +top.dataset.g;
+  const lab = $('#rch'); if (lab) lab.textContent = `Глава ${+top.dataset.c + 1} из ${r.book.chapters.length}`;
+  const bar = $('#sessBar'), gate = $('#gate'), start = r.gate && elAt(r.gate.from);
+  if (bar && gate && start){
+    const s = start.getBoundingClientRect().top, e = gate.getBoundingClientRect().top;
+    bar.style.width = (e > s ? Math.max(0, Math.min(1, (window.innerHeight - s) / (e - s))) * 100 : 100) + '%';
   }
-  const lockBlock = `<div class="chest-gate">${ico('moon', '').replace('<svg ', '<svg style="width:48px;height:48px" ')}<b style="font-size:18px">На сегодня норма выполнена!</b><p class="muted" style="margin:0;text-align:center;max-width:34ch">Продолжение откроется завтра. Отдыхай — книга подождёт.</p></div>`;
-
-  let text;
-  if (r.paras){
-    const parts = [];
-    r.paras.forEach((x, i) => {
-      const blurred = dayLocked ? i >= lockPara : !done && flagPara >= 0 && i > flagPara;
-      if (dayLocked && i === lockPara) parts.push(lockBlock);
-      if (x && typeof x === 'object' && x.img){
-        parts.push(`<div class="book-img${blurred ? ' blurred' : ''}" data-p="${i}"><img src="${x.img}" alt=""></div>`);
-      } else {
-        parts.push(`<p class="tx${blurred ? ' blurred' : ''}" data-p="${i}">${wordify(x)}</p>`);
-      }
-      if (flagPara === i && !done && !dayLocked){
-        const failed = failedAttempts(b.id, r.ch);
-        const resume = S.quiz && S.quiz.qs && !S.quiz.finished && S.quiz.bookId === b.id && S.quiz.ch === r.ch;
-        const label = resume ? `Вернуться к вопросу ${S.quiz.idx + 1}` : failed ? 'Пройти новые вопросы — пополнить копилку' : 'Открой сундук — ответь на вопросы';
-        const note = failed ? `<p class="muted" style="font-size:13px;margin:0;text-align:center;max-width:36ch">Сундук этой главы сгорел. Перечитай главу внимательно — за новые вопросы получишь ${bankCfg().per} ${esc(bankCfg().name)}.</p>` : '';
-        parts.push(`<div class="chest-gate">${note}<button class="chest-gate-btn" data-act="startQuiz">${chestSVG()}<span>${label}</span></button></div>`);
-      }
-    });
-    if (flagPara >= 0 && !done && !dayLocked) prefetchQuiz(b, r.ch);
-    text = parts.join('').replace(/<span class="w">([^<]+)<\/span>/g, (m, w) => seen.has(w.toLowerCase()) ? `<span class="w seen">${w}</span>` : m);
-  } else {
-    text = `<div class="center" style="min-height:30vh"><div class="spinner"></div><p class="muted">Открываю главу…</p></div>`;
-  }
-
-  const totalBW = bookTotalWords(b);
-  const progPct = totalBW > 0 ? Math.min(100, Math.round(gwr / totalBW * 100)) : 0;
-  const progLabel = target + ' слов = норма';
-  const progBar = totalBW > 0 ? `<div class="sess-prog"><div class="bar"><i id="sessBar" style="width:${progPct}%"></i></div><span class="sess-label">${progLabel}</span></div>` : '';
-
-  let footer = '';
-  if (r.paras && done){
-    footer = `<footer class="rend"><p class="muted">Этот отрывок ты уже прошёл.</p><div class="acts" style="justify-content:center">${r.ch + 1 < n ? `<button class="btn big" data-act="readCh" data-id="${b.id}" data-ch="${r.ch + 1}">Следующая глава</button>` : ''}</div></footer>`;
-  } else if (r.paras && dayLocked){
-    footer = `<footer class="rend"><p class="muted">Продолжение — завтра ${ico('moon')}</p><div class="acts" style="justify-content:center"><button class="btn alt" data-act="toHome">К книгам</button></div></footer>`;
-  } else if (r.paras && needsContinue){
-    footer = `<footer class="rend"><p class="muted">Продолжай читать — сундук впереди!</p><div class="acts" style="justify-content:center">${r.ch + 1 < n ? `<button class="btn big" data-act="readCh" data-id="${b.id}" data-ch="${r.ch + 1}">Читать дальше →</button>` : `<p class="muted">Конец книги.</p>`}</div></footer>`;
-  }
-
-  return `<div class="reader">
-    <header class="rbar"><button class="btn alt small" data-act="toHome">← Полка</button>
-      <div class="rtitle"><b>${esc(b.title)}</b><span>Глава ${r.ch + 1} из ${n}</span></div>
-      <div class="fsz"><button data-act="font" data-d="-1" aria-label="Буквы меньше">А−</button><button data-act="font" data-d="1" aria-label="Буквы больше">А+</button></div></header>
-    ${progBar}<article class="page" style="--read-size:${FONT_SIZES[S.kd.font]}px"><h1 class="chtitle">${esc(b.chapters[r.ch].title)}</h1>
-      <p class="tip">Нажми на непонятное слово, и я объясню, что оно значит.</p>${text}</article>
-    ${footer}
-  </div>`;
+  if (r.from > 0 && window.scrollY < 600) loadEarlier();
+  clearTimeout(posTimer);
+  posTimer = setTimeout(() => {
+    const bp = kd.books[r.book.id];
+    if (bp && S.kd === kd && S.reader === r && bp.pos !== r.pos){ bp.pos = r.pos; saveKd(); }
+  }, 1500);
+}
+async function loadEarlier(){
+  const r = S.reader;
+  if (!r || r.from <= 0 || r.loadingEarlier) return;
+  r.loadingEarlier = true;
+  try {
+    const c = r.from - 1;
+    r.chs[c] = await chapterParas(r.book, c);
+    if (S.reader === r && S.screen === 'reader') keepPlace(() => { r.from = c; render(); });
+  } catch (e) { toast('Не получилось загрузить главу'); }
+  finally { r.loadingEarlier = false; }
+}
+function placeReader(entering){
+  const r = S.reader;
+  if (!r.ready || !(entering || r.jump)) return;
+  r.jump = false;
+  scrollToPos(r.pos);
+  readerScrolled();
 }
 
 function scrQuiz(){
   const q = S.quiz, b = S.reader.book;
-  const head = `<div class="qhead"><button class="btn alt small" data-act="backToText">← К тексту</button><div class="grow"><b>${esc(b.title)}</b><div class="muted">Глава ${S.reader.ch + 1}</div></div></div>`;
-  if (q.loading) return `<div class="quiz">${head}<div class="center"><div class="spinner"></div><h2 class="display">Готовлю вопросы по главе…</h2><p class="muted">Это может занять до минуты.</p></div></div>`;
+  const head = `<div class="qhead"><button class="btn alt small" data-act="backToText">← К тексту</button><div class="grow"><b>${esc(b.title)}</b><div class="muted">Вопросы по прочитанному</div></div></div>`;
+  if (q.loading) return `<div class="quiz">${head}<div class="center"><div class="spinner"></div><h2 class="display">Готовлю вопросы по прочитанному…</h2><p class="muted">Это может занять до минуты.</p></div></div>`;
   if (q.error) return `<div class="quiz">${head}<div class="center"><h2>Вопросы не получились</h2><p class="err">${esc(q.error)}</p>
-    <div class="acts" style="justify-content:center"><button class="btn" data-act="retryQuiz">Попробовать ещё раз</button><button class="btn alt" data-act="skipQuiz">Отметить главу прочитанной</button></div></div></div>`;
+    <div class="acts" style="justify-content:center"><button class="btn" data-act="retryQuiz">Попробовать ещё раз</button><button class="btn alt" data-act="skipQuiz">Отметить прочитанным</button></div></div></div>`;
   if (q.finished){
     const bank = bankCfg(), total = q.qs.length, errs = q.totalWrong || 0;
     if (!q.passed){
       return `<div class="quiz">${head}<div class="center" style="padding:32px 0">
         <svg viewBox="0 -26 160 160" style="width:140px;height:auto" aria-hidden="true">${FLAME_SVG}</svg>
         <h2 class="display" style="margin:8px 0 4px">${q.isRetry ? 'Снова слишком много ошибок' : 'Сундук сгорел!'}</h2>
-        <p class="muted" style="max-width:34ch">Ошибок: ${errs}, а можно не больше ${MAX_WRONG}. ${q.isRetry ? '' : 'Сундука за эту главу уже не будет. '}Перечитай главу внимательно — потом будут новые вопросы, и за них ты получишь ${bank.per} ${esc(bank.name)}.</p>
+        <p class="muted" style="max-width:34ch">Ошибок: ${errs}, а можно не больше ${MAX_WRONG}. ${q.isRetry ? '' : 'Сундука за этот отрывок уже не будет. '}Перечитай отрывок внимательно — потом будут новые вопросы, и за них ты получишь ${bank.per} ${esc(bank.name)}.</p>
         <div class="acts" style="justify-content:center;margin-top:18px">
-          <button class="btn big" data-act="burnedRead">Перечитать главу</button>
+          <button class="btn big" data-act="burnedRead">Перечитать отрывок</button>
           <button class="btn alt" data-act="toHome">К книгам</button>
         </div>
       </div></div>`;
@@ -1560,7 +1613,7 @@ function scrQuiz(){
     <div class="eyebrow">Вопрос ${q.idx + 1} из ${q.qs.length} · ${(q.totalWrong || 0) > MAX_WRONG ? `ошибок ${q.totalWrong} — больше ${MAX_WRONG}` : `ошибок ${q.totalWrong || 0} из ${MAX_WRONG}`}</div>
     <h2 class="qtext">${esc(cur.q)}</h2>
     <div class="opts">${cur.options.map((o, i) => { const st = q.solved && i === cur.answer ? 'right' : q.wrong.includes(i) ? 'wrong' : ''; return `<button class="opt ${st}" data-act="answer" data-i="${i}" ${q.solved || q.wrong.includes(i) ? 'disabled' : ''}>${esc(o)}</button>`; }).join('')}</div>
-    ${q.wrong.length && !q.solved ? `<div class="hint"><b>Подсказка.</b> ${esc(cur.hint || 'Загляни в главу ещё раз.')} <button class="btn small alt" data-act="backToText" style="margin-left:6px">Перечитать в книге</button></div>` : ''}
+    ${q.wrong.length && !q.solved ? `<div class="hint"><b>Подсказка.</b> ${esc(cur.hint || 'Загляни в текст ещё раз.')} <button class="btn small alt" data-act="backToText" style="margin-left:6px">Перечитать в книге</button></div>` : ''}
     ${q.solved ? `<div class="praise">${esc(q.praise)}</div><div><button class="btn big" data-act="nextQ">${last ? 'Посмотреть результат' : 'Следующий вопрос'}</button></div>` : ''}
   </div>`;
 }
@@ -1573,15 +1626,15 @@ function chestSVG(fire){
   </svg>`;
 }
 function scrChest(){
-  const c = S.chest, b = S.reader.book, ch = S.reader.ch, n = b.chapters.length, bank = bankCfg();
+  const c = S.chest, b = S.reader.book, bank = bankCfg();
   const finished = bookProg(b.id).finished;
-  const nextBtn = ch + 1 < n ? `<button class="btn" data-act="readCh" data-id="${b.id}" data-ch="${ch + 1}">Следующая глава</button>` : '';
+  const nextBtn = finished ? '' : `<button class="btn" data-act="readBook" data-id="${b.id}">Читать дальше</button>`;
   const after = `${finished ? '<p class="praise">Книга прочитана целиком!</p>' : ''}<div class="acts" style="justify-content:center">${nextBtn}<button class="btn alt" data-act="toHome">К книгам</button></div>`;
-  const head = `<div class="eyebrow">Глава ${ch + 1} пройдена</div><div class="bank-badge">${c.minutes ? `+${c.minutes} ${esc(bank.name)}` : `Копилка на сегодня полная (${MAX_BANK_PER_DAY} из ${MAX_BANK_PER_DAY})`} · в копилке ${S.kd.bank}</div>`;
+  const head = `<div class="eyebrow">Норма прочитана</div><div class="bank-badge">${c.minutes ? `+${c.minutes} ${esc(bank.name)}` : `Копилка на сегодня полная (${MAX_BANK_PER_DAY} из ${MAX_BANK_PER_DAY})`} · в копилке ${S.kd.bank}</div>`;
   const nd = c.daily.length;
   if (nd && c.state !== 'open'){
     const opening = c.state === 'opening';
-    const title = opening ? 'Открываю…' : nd > 1 ? 'Выбери один сундук' : 'Сундук за главу';
+    const title = opening ? 'Открываю…' : nd > 1 ? 'Выбери один сундук' : 'Сундук за чтение';
     return `<div class="chestwrap">${head}<h1 class="display">${title}</h1>
       <div class="${nd > 1 ? 'three' : ''}" ${nd === 2 ? 'style="grid-template-columns:repeat(2,minmax(0,1fr));width:min(380px,100%)"' : ''}>${c.daily.map((_, i) => `<button class="chest ${opening && c.chosen === i ? 'shake' : ''}" data-act="pickChest" data-i="${i}" aria-label="Сундук ${i + 1}" ${opening ? 'disabled' : ''}>${chestSVG()}</button>`).join('')}</div>
       <p class="muted">${opening ? 'Кто-то стучится изнутри…' : nd > 1 ? 'В каждом свой приз. Что было в остальных, покажу после выбора.' : 'Нажми на сундук'}</p></div>`;
@@ -1592,7 +1645,7 @@ function scrChest(){
     main = `<div class="pop" style="display:grid;justify-items:center;width:100%">${prizeHTML(c.daily[c.chosen], c.ann, c.style)}</div>
       ${others ? `<div class="others"><b>А в других сундуках было:</b>${others}</div>` : ''}`;
   } else {
-    const why = !c.firstTry ? 'Сундук этой главы сгорел, но копилка пополнилась. В следующей главе постарайся ответить без лишних ошибок!'
+    const why = !c.firstTry ? 'Сундук сгорел, но копилка пополнилась. В следующий раз постарайся ответить без лишних ошибок!'
       : !c.eligible ? 'Вчера чтения не было, поэтому сегодня без сундука. Почитай сегодня — и завтра сундуки вернутся!'
       : 'Взрослые ещё не положили призы в сундуки. Попроси их добавить призы в настройках.';
     main = `<h1 class="display">${c.firstTry && c.eligible ? 'Копилка пополнена!' : 'Сегодня без сундука'}</h1><p class="muted" style="max-width:36ch;text-align:center">${why}</p>`;
@@ -1614,8 +1667,10 @@ function render(){
   const night = kidMode ? S.kd.theme === 'night' : isNightNow();
   if (kidMode) document.body.dataset.kt = S.kd.theme; else if (S.screen === 'profiles') document.body.dataset.kt = night ? 'night' : 'day'; else delete document.body.dataset.kt;
   if (S.lastScreen !== S.screen && (S.screen === 'home' || S.screen === 'profiles')) S.scene = pickScene(night);
+  const entering = S.lastScreen !== S.screen;
   app.innerHTML = SCREENS[S.screen]();
-  if (S.lastScreen !== S.screen){ window.scrollTo(0, 0); S.lastScreen = S.screen; }
+  if (entering){ window.scrollTo(0, 0); S.lastScreen = S.screen; }
+  if (S.screen === 'reader') placeReader(entering);
 }
 function go(screen){ S.screen = screen; render(); }
 
@@ -1629,24 +1684,30 @@ function closeSheet(){
   document.querySelectorAll('.w.act').forEach(e => e.classList.remove('act'));
 }
 /* ---------- reading flow ---------- */
-async function openReader(book, ch){
+// Opens the book where the child stopped; the text runs down to today's chest
+async function openReader(book, pos){
   closeSheet();
-  ch = Math.max(0, Math.min(ch, book.chapters.length - 1));
-  const _lastReadAt = S.kd ? (S.kd.lastReadAt || 0) : 0;
-  const _isReturn = Date.now() - _lastReadAt > 3 * 3600 * 1000 && _lastReadAt > 0;
-  S.reader = {book, ch, paras:null};
-  S.kd.last = book.id;
-  if (S.kd){ S.kd.lastReadAt = Date.now(); }
   const bp = S.kd.books[book.id] = S.kd.books[book.id] || {ch:0, done:[], globalWordsRead:0};
-  bp.ch = ch; saveKd();
+  S.kd.last = book.id; S.kd.lastReadAt = Date.now(); saveKd();
+  const r = S.reader = {book, chs:{}, ready:false, pos:pos || 0, from:0};
   S.screen = 'reader'; S.lastScreen = null; render();
-  try { S.reader.paras = await chapterParas(book, ch); }
-  catch (e) { S.reader.paras = ['Не получилось открыть главу. Проверь интернет и попробуй ещё раз.']; }
-  if (S.screen === 'reader' && S.reader.book === book){ render(); }
+  try {
+    const gwr = bp.globalWordsRead || 0, total = bookTotalWords(book);
+    if (total > 0 && gwr >= total){ r.mode = 'finished'; r.end = total; }
+    else if (bankToday() >= MAX_BANK_PER_DAY){ r.mode = 'locked'; r.end = gwr; }
+    else { r.gate = await findGate(book, gwr); r.mode = 'gate'; r.end = r.gate.to; }
+    r.pos = Math.max(0, Math.min(pos != null ? pos : bp.pos != null ? bp.pos : gwr, r.end - 1));
+    r.from = Math.max(0, Math.min(chAt(book, r.pos), chAt(book, gwr)) - 1);
+    const last = chAt(book, Math.max(0, r.end - 1)), list = range(r.from, last);
+    (await Promise.all(list.map(c => chapterParas(book, c)))).forEach((p, i) => { r.chs[list[i]] = p; });
+    r.ready = r.jump = true;
+    if (r.mode === 'gate') prefetchQuiz(book, r.gate);
+  } catch (e) { console.error(e); r.err = true; }
+  if (S.screen === 'reader' && S.reader === r) render();
 }
 async function explainWord(span){
   const word = span.textContent, pEl = span.closest('p');
-  const _paraRaw = (S.reader.paras || [])[+pEl.dataset.p];
+  const _paraRaw = ((S.reader.chs || {})[pEl.dataset.c] || [])[+pEl.dataset.p];
   const para = typeof _paraRaw === 'string' ? _paraRaw : '';
   const sent = (para.split(/(?<=[.!?…])\s+/).find(s => s.includes(word)) || para).slice(0, 400);
   document.querySelectorAll('.w.act').forEach(e => e.classList.remove('act'));
@@ -1699,20 +1760,22 @@ async function wordCache(bookId){
 }
 const failedAttempts = (bookId, ch) => (((S.kd.books[bookId] || {}).fails || {})[ch]) || 0;
 async function startQuiz(){
-  const r = S.reader;
-  // Resume in-progress quiz if it's for the same book+chapter
-  if (S.quiz && S.quiz.qs && !S.quiz.finished && S.quiz.bookId === r.book.id && S.quiz.ch === r.ch){ go('quiz'); return; }
-  const attempt = failedAttempts(r.book.id, r.ch);
-  const avoid = attempt ? (((S.kd.books[r.book.id] || {}).seenQs || {})[r.ch] || []) : [];
+  const r = S.reader, g = r.gate;
+  if (!g) return;
+  // Resume in-progress quiz if it's for the same stretch of text
+  if (S.quiz && S.quiz.qs && !S.quiz.finished && S.quiz.bookId === r.book.id && S.quiz.from === g.from){ go('quiz'); return; }
+  const attempt = failedAttempts(r.book.id, g.from);
+  const avoid = attempt ? (((S.kd.books[r.book.id] || {}).seenQs || {})[g.from] || []) : [];
   S.quiz = {loading:true};
   go('quiz');
   try {
-    const doc = await getQuiz(r.book, r.ch, attempt, avoid);
-    const qs = shuffle(doc.questions).map(q => {
+    const doc = await getQuiz(r.book, g, attempt, avoid);
+    // Questions follow the story; only the answers are shuffled
+    const qs = doc.questions.map(q => {
       const order = shuffle(q.options.map((_, i) => i));
       return {q:q.q, hint:q.hint, options:order.map(i => q.options[i]), answer:order.indexOf(q.answer)};
     });
-    S.quiz = {qs, idx:0, wrong:[], solved:false, firstOk:0, praise:'', totalWrong:0, bookId:r.book.id, ch:r.ch, isRetry:attempt > 0};
+    S.quiz = {qs, idx:0, wrong:[], solved:false, firstOk:0, praise:'', totalWrong:0, bookId:r.book.id, from:g.from, isRetry:attempt > 0};
   } catch (e) {
     S.quiz = {error:aiErr(e)};
   }
@@ -1720,13 +1783,14 @@ async function startQuiz(){
 }
 function completeChapter(total, firstOk){
   const r = S.reader, b = r.book;
-  const range = r.paras ? sittingRange(b, r.ch, r.paras) : {to:chWordStart(b, r.ch) + (b.chapters[r.ch].words || 0)};
   const bp = S.kd.books[b.id] = S.kd.books[b.id] || {ch:0, done:[], globalWordsRead:0};
-  // Count exactly what was read this sitting; the rest of the chapter stays to read next time
-  bp.globalWordsRead = Math.max(bp.globalWordsRead || 0, range.to);
-  // Keep done[] for hero-chat context (which chapter the quiz was in)
+  const before = bp.globalWordsRead || 0;
+  // Count exactly what was read this sitting; the next one starts right after the chest
+  bp.globalWordsRead = Math.max(before, r.gate ? r.gate.to : bookTotalWords(b));
+  bp.pos = bp.globalWordsRead;
+  // Chapters finished in this sitting (done[] also feeds the hero chat)
   if (!bp.done) bp.done = [];
-  if (!bp.done.includes(r.ch)){ bp.done.push(r.ch); S.kd.stats.chapters++; }
+  b.chapters.forEach((c, i) => { const e = chWordStart(b, i) + (c.words || 0); if (e > before && e <= bp.globalWordsRead && !bp.done.includes(i)){ bp.done.push(i); S.kd.stats.chapters++; } });
   S.kd.log.push(Date.now()); S.kd.log = S.kd.log.slice(-200);
   bp.ch = nextUnreadCh(b);
   const totalBW = bookTotalWords(b);
@@ -1925,31 +1989,32 @@ const A = {
   },
   htab(el){ S.homeTab = el.dataset.t; render(); },
   toggleTheme(){ S.kd.theme = S.kd.theme === 'night' ? 'day' : 'night'; S.scene = pickScene(S.kd.theme === 'night'); saveKd(); render(); },
-  font(el){ const y = window.scrollY; S.kd.font = Math.max(0, Math.min(FONT_SIZES.length - 1, S.kd.font + (+el.dataset.d))); saveKd(); render(); window.scrollTo(0, y); },
+  font(el){ keepPlace(() => { S.kd.font = Math.max(0, Math.min(FONT_SIZES.length - 1, S.kd.font + (+el.dataset.d))); saveKd(); render(); }); },
+  loadEarlier(){ loadEarlier(); },
   closeSheet(){ closeSheet(); },
 
   openBook(el){
     const b = bookById(el.dataset.id); if (!b) return;
     const p = bookProg(b.id);
     const totalBW = bookTotalWords(b), pct = totalBW > 0 ? Math.min(100, Math.round(p.globalWordsRead / totalBW * 100)) : 0;
-    const nextCh = nextUnreadCh(b);
     const chDone = i => { const s = chWordStart(b, i), w = b.chapters[i].words || 0; return p.globalWordsRead >= s + w; };
+    const reached = i => p.finished || chWordStart(b, i) <= p.globalWordsRead;
     openSheet(`<div style="display:flex;gap:14px;align-items:center">${cover(b, true)}<div class="grow"><h2 class="display" style="font-size:22px">${esc(b.title)}</h2><div class="muted">${esc(b.author || '')}</div><div class="muted">${p.finished ? 'Книга прочитана' : pct + '% прочитано'}</div></div></div>
-      <div class="acts"><button class="btn" data-act="readCh" data-id="${b.id}" data-ch="${nextCh}">${p.globalWordsRead > 0 ? 'Читать дальше' : 'Начать читать'}</button></div>
-      <h3>Главы</h3><ul class="chlist">${b.chapters.map((c, i) => `<li><button data-act="readCh" data-id="${b.id}" data-ch="${i}"><span class="mk ${chDone(i) ? 'done' : ''}">${chDone(i) ? '✓' : i + 1}</span><span class="grow">${esc(c.title)}</span></button></li>`).join('')}</ul>`);
+      <div class="acts"><button class="btn" data-act="readBook" data-id="${b.id}">${p.globalWordsRead > 0 ? 'Читать дальше' : 'Начать читать'}</button></div>
+      <h3>Главы</h3><ul class="chlist">${b.chapters.map((c, i) => `<li><button data-act="readCh" data-id="${b.id}" data-ch="${i}" ${reached(i) ? '' : 'disabled'}><span class="mk ${chDone(i) ? 'done' : ''}">${chDone(i) ? '✓' : i + 1}</span><span class="grow">${esc(c.title)}</span></button></li>`).join('')}</ul>`);
   },
-  readCh(el){ const b = bookById(el.dataset.id); if (b) openReader(b, +el.dataset.ch); },
+  readBook(el){ const b = bookById(el.dataset.id); if (b) openReader(b); },
+  readCh(el){ const b = bookById(el.dataset.id); if (b) openReader(b, chWordStart(b, +el.dataset.ch)); },
   toHome(){ closeSheet(); if (S.homeTab === 'words') S.homeTab = 'shelf'; go('home'); },
-  burnedRead(){ S.quiz = null; S.lastScreen = null; go('reader'); },
+  burnedRead(){ const r = S.reader; S.quiz = null; if (r.gate) r.pos = r.gate.from; S.lastScreen = null; go('reader'); },
   retryWord(){ if (S.retrySpan && document.body.contains(S.retrySpan)) explainWord(S.retrySpan); },
   startQuiz(){ startQuiz(); },
   retryQuiz(){ startQuiz(); },
   skipQuiz(){
     completeChapter(0, 0);
     const b = S.reader.book;
-    const next = nextUnreadCh(b);
     toast('Отрывок отмечен прочитанным');
-    if (next < b.chapters.length && !S.kd.books[b.id].finished) openReader(b, next); else go('home');
+    if (!S.kd.books[b.id].finished) openReader(b); else go('home');
   },
   backToText(){ go('reader'); },
   answer(el){
@@ -1966,8 +2031,8 @@ const A = {
     q.passed = (q.totalWrong || 0) <= MAX_WRONG;
     if (!q.passed){
       const bp = S.kd.books[q.bookId] = S.kd.books[q.bookId] || {ch:0, done:[], globalWordsRead:0};
-      bp.fails = bp.fails || {}; bp.fails[q.ch] = (bp.fails[q.ch] || 0) + 1;
-      bp.seenQs = bp.seenQs || {}; bp.seenQs[q.ch] = (bp.seenQs[q.ch] || []).concat(q.qs.map(x => x.q)).slice(-40);
+      bp.fails = bp.fails || {}; bp.fails[q.from] = (bp.fails[q.from] || 0) + 1;
+      bp.seenQs = bp.seenQs || {}; bp.seenQs[q.from] = (bp.seenQs[q.from] || []).concat(q.qs.map(x => x.q)).slice(-40);
       saveKd();
     }
     render();
