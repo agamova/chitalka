@@ -3,8 +3,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Читалка</title>
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Читалка">
 <meta name="theme-color" content="#3D5FE0">
@@ -469,7 +470,8 @@ async function sha(s){
 let toastTimer;
 function toast(msg){ toastEl.textContent = msg; toastEl.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastEl.hidden = true; }, 3200); }
 
-const COLORS = ['#E4572E', '#2F5DA8', '#14897F', '#8E4FD6', '#D9831F', '#3A7D44'];
+// Profile colours from the cobalt + terracotta palette; kids keep their index, so old choices map onto these
+const COLORS = ['#D2694F', '#3D5FE0', '#1F2560', '#7D8CEB', '#A8492F', '#4A4F63'];
 const THEMES = [{id:'day', name:'День'}, {id:'night', name:'Ночь'}];
 const timeHello = () => { const h = new Date().getHours(); return h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Привет' : 'Добрый вечер'; };
 const todayLong = () => { const t = new Date().toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'}); return t[0].toUpperCase() + t.slice(1); };
