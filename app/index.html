@@ -200,6 +200,12 @@ legend{font-weight:700; font-size:14px; margin-bottom:6px}
 .dict li{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:grid; gap:4px}
 .dict li b{font-size:19px; font-family:var(--font-read)}
 .dict .src{font-size:12px; color:var(--muted); font-weight:700}
+.dictsearch{width:100%; margin-bottom:12px}
+.dictmore{justify-self:center; margin-top:4px}
+.wbook{border-top:1px solid var(--line); padding:10px 0}
+.wbook summary{cursor:pointer; font-weight:800; list-style-position:inside}
+.wbook summary .muted{font-weight:600}
+.wbook .wordlist{margin-top:10px}
 
 /* how far the chest is: a thin line under the reader bar */
 .rprog{position:absolute; left:0; right:0; bottom:0; height:4px; border-radius:2px; background:var(--surface-2); overflow:hidden}
@@ -1292,7 +1298,7 @@ function parentProgress(){
         <div class="stat"><b>${d.prizes.length}</b><span>призов из сундуков</span></div>
       </div>
       ${books.length ? `<div class="rows">${books.map(x => { const gwr = x.p.globalWordsRead || 0, totalBW = bookTotalWords(x.b), pct = totalBW > 0 ? Math.min(100, Math.round(gwr / totalBW * 100)) : 0; return `<div class="row"><span class="mini-cover" style="--h:${hue(x.b.title)}"></span><div class="grow"><b>${esc(x.b.title)}</b><div class="muted">${x.p.finished ? 'Прочитана' : pct + '% прочитано'}</div></div></div>`; }).join('')}</div>` : ''}
-      ${d.words.length ? `<div><h3 style="margin-bottom:8px">Слова, которые ${esc(k.name)} искал(а) недавно</h3><ul class="wordlist">${d.words.slice(0, 8).map(w => `<li><b>${esc(w.w)}</b><span>${esc(w.m)}</span><span class="muted" style="font-size:13px">${esc(w.book)}</span></li>`).join('')}</ul><p class="muted" style="margin-top:8px">Хороший повод спросить: «А где тебе встретилось это слово?»</p></div>` : ''}
+      ${d.words.length ? `<div><h3 style="margin-bottom:8px">Слова, которые ${esc(k.name)} искал(а) недавно</h3><ul class="wordlist">${d.words.slice(0, 8).map(w => `<li><b>${esc(w.w)}</b><span>${esc(w.m)}</span><span class="muted" style="font-size:13px">${esc(w.book)}</span></li>`).join('')}</ul>${d.words.length > 8 ? `<button class="btn alt small" data-act="allWords" data-kid="${k.id}" style="margin-top:8px">Все слова (${d.words.length})</button>` : ''}<p class="muted" style="margin-top:8px">Хороший повод спросить: «А где тебе встретилось это слово?»</p></div>` : ''}
     </section>`;
   }).join('');
 }
@@ -1430,6 +1436,26 @@ function rewardStatsHTML(){
     <div class="kstat${streak >= 2 ? ' hot' : ''}"><b>${ico('flame')} ${streak}</b><span>${plural(streak, 'день', 'дня', 'дней')} подряд</span></div>
   </div><p class="muted" style="font-size:13px;margin:0 0 4px">${fireLine}</p>${dayDone}${noChest}`;
 }
+// The child's dictionary: newest first, a search box and 30 words at a time
+const DICT_STEP = 30;
+const dictNorm = t => String(t || '').toLowerCase().replace(/ё/g, 'е').trim();
+function dictList(){
+  const q = dictNorm(S.dictQ), all = S.kd.words.filter(w => !q || dictNorm(w.w).includes(q) || dictNorm(w.raw).includes(q));
+  if (!all.length) return `<div class="empty"><b>Такого слова нет</b><span>Может, оно ещё не встречалось в книгах.</span></div>`;
+  const n = S.dictN || DICT_STEP;
+  return `<ul class="dict">${all.slice(0, n).map(w => `<li><b>${esc(w.w)}</b><span>${esc(w.m)}</span>${w.ex ? `<span class="muted">Например: ${esc(w.ex)}</span>` : ''}<span class="src">«${esc(w.book)}»</span></li>`).join('')}</ul>${all.length > n ? `<button class="btn alt dictmore" data-act="dictMore">Показать ещё (${all.length - n})</button>` : ''}`;
+}
+const refreshDict = () => { const el = $('#dictList'); if (el) el.innerHTML = dictList(); };
+// A parent sees every word, grouped by book, 20 at a time
+const PWORDS_STEP = 20;
+const pwordItem = w => `<li><b>${esc(w.w)}</b><span>${esc(w.m)}</span>${w.old ? '<span class="tag">Старинное или редкое</span>' : ''}</li>`;
+function parentWords(kidId){
+  const k = S.family.kids.find(x => x.id === kidId), words = normKd(S.progress[kidId]).words, groups = new Map();
+  words.forEach(w => { const key = w.bookId || w.book; if (!groups.has(key)) groups.set(key, {title:w.book, list:[]}); groups.get(key).list.push(w); });
+  openSheet(`<h2 class="display" style="font-size:22px">Словарик: ${esc(k ? k.name : '')}</h2><p class="muted">${words.length} ${plural(words.length, 'слово', 'слова', 'слов')}, новые сверху</p>
+    ${[...groups.entries()].map(([key, g]) => { const old = g.list.filter(w => w.old).length; return `<details class="wbook"><summary>«${esc(g.title)}» <span class="muted">· ${g.list.length} ${plural(g.list.length, 'слово', 'слова', 'слов')}${old ? `, из них ${old} ${plural(old, 'старинное', 'старинных', 'старинных')}` : ''}</span></summary>
+      <ul class="wordlist">${g.list.slice(0, PWORDS_STEP).map(pwordItem).join('')}</ul>${g.list.length > PWORDS_STEP ? `<button class="btn alt small dictmore" data-act="pwordsMore" data-kid="${kidId}" data-book="${esc(key)}" data-n="${PWORDS_STEP}">Показать ещё</button>` : ''}</details>`; }).join('')}`);
+}
 function scrHome(){
   const k = S.kid, kd = S.kd, books = kidBooks();
   const last = kd.last && bookById(kd.last);
@@ -1464,7 +1490,7 @@ function scrHome(){
       ${kd.prizes.length ? `<ul class="plist">${kd.prizes.map(p => `<li class="t${prizeVis(p)}"><span class="fishmini">${giftSVG(prizeVis(p))}</span><div class="grow"><b>${esc(p.text)}</b><div class="muted" style="font-size:13px">${new Date(p.at).toLocaleDateString('ru-RU', {day:'numeric', month:'long'})} · «${esc(p.book)}»</div></div>${p.given ? '<span class="saved">✓ Получено</span>' : '<span class="badge">Покажи взрослому</span>'}</li>`).join('')}</ul>`
         : (items.length ? '<div class="empty"><b>Пока призов нет</b><span>Дочитай главу, ответь на вопросы и открой сундук.</span></div>' : '')}`;
   } else {
-    body = kd.words.length ? `<ul class="dict">${kd.words.map(w => `<li><b>${esc(w.w)}</b><span>${esc(w.m)}</span>${w.ex ? `<span class="muted">Например: ${esc(w.ex)}</span>` : ''}<span class="src">«${esc(w.book)}»</span></li>`).join('')}</ul>`
+    body = kd.words.length ? `<input id="dictQ" class="dictsearch" type="search" placeholder="Найти слово" value="${esc(S.dictQ || '')}" autocomplete="off"><div id="dictList">${dictList()}</div>`
       : `<div class="empty"><b>Словарик пока пустой</b><span>Нажимай в книге на непонятные слова — они будут собираться здесь.</span></div>`;
   }
   return `<div class="home">
@@ -1762,7 +1788,7 @@ async function explainWord(span){
     const lemma = String(r.lemma || word).trim() || word, ex = String(r.example || '').trim();
     if (!S.kd.words.some(w => w.raw === raw && w.bookId === book.id)){
       S.kd.words.unshift({raw, w:lemma, m:meaning, ex, old:!!r.old, book:book.title, bookId:book.id, at:Date.now()});
-      S.kd.words = S.kd.words.slice(0, 400); saveKd();
+      S.kd.words = S.kd.words.slice(0, 1500); saveKd();
     }
     span.classList.add('seen');
     show(`${lemma.toLowerCase() !== raw ? `<div class="muted">Начальная форма: <b>${esc(lemma)}</b></div>` : ''}${r.old ? '<span class="tag">Старинное или редкое слово</span>' : ''}<p>${esc(meaning)}</p>${ex ? `<p class="ex">Например: ${esc(ex)}</p>` : ''}<p class="saved">✓ Слово сохранено в словарик</p>`);
@@ -2007,7 +2033,14 @@ const A = {
     try { const b = parseTxt(text, title); b.author = author; await saveBook(b); }
     catch (e) { setImport('Не получилось добавить книгу: ' + ((e && e.message) || 'ошибка') + '.'); }
   },
-  htab(el){ S.homeTab = el.dataset.t; render(); },
+  htab(el){ S.homeTab = el.dataset.t; S.dictQ = ''; S.dictN = 0; render(); },
+  dictMore(){ S.dictN = (S.dictN || DICT_STEP) + DICT_STEP; refreshDict(); },
+  allWords(el){ parentWords(el.dataset.kid); },
+  pwordsMore(el){
+    const words = normKd(S.progress[el.dataset.kid]).words.filter(w => (w.bookId || w.book) === el.dataset.book), n = +el.dataset.n;
+    el.previousElementSibling.insertAdjacentHTML('beforeend', words.slice(n, n + PWORDS_STEP).map(pwordItem).join(''));
+    if (n + PWORDS_STEP >= words.length) el.remove(); else el.dataset.n = n + PWORDS_STEP;
+  },
   toggleTheme(){ S.kd.theme = S.kd.theme === 'night' ? 'day' : 'night'; S.scene = pickScene(S.kd.theme === 'night'); saveKd(); render(); },
   font(el){ keepPlace(() => { S.kd.font = Math.max(0, Math.min(FONT_SIZES.length - 1, S.kd.font + (+el.dataset.d))); saveKd(); render(); }); },
   loadEarlier(){ loadEarlier(); },
@@ -2108,6 +2141,9 @@ function showFail(err){
 }
 window.addEventListener('error', e => showFail(e.error || e.message));
 window.addEventListener('unhandledrejection', e => showFail(e.reason));
+document.addEventListener('input', e => {
+  if (e.target.id === 'dictQ'){ S.dictQ = e.target.value; S.dictN = 0; refreshDict(); }
+});
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'bookFile' && t.files && t.files[0]){ importFile(t.files[0]); t.value = ''; }
