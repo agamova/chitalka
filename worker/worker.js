@@ -138,17 +138,21 @@ async function askAi(env, prompt, tier) {
     body: JSON.stringify({
       model: MODELS[tier] || MODELS.default,
       max_tokens: tier === 'quick' ? 1024 : 8000,
+      ...(tier === 'quick' ? { reasoning: { enabled: false } } : {}),
       messages: [{ role: 'user', content: String(prompt) }]
     })
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    return fail(500, (err.error && err.error.message) || `OpenRouter error ${res.status}`);
+    const msg = (err.error && err.error.message) || `OpenRouter error ${res.status}`;
+    console.error('ai', tier, res.status, msg);
+    return fail(500, msg);
   }
   const data = await res.json();
-  const text = data.choices[0].message.content;
+  const text = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
   const m = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  return json(JSON.parse(m ? m[0] : text));
+  try { return json(JSON.parse(m ? m[0] : text)); }
+  catch (e) { console.error('ai bad json', tier, text.slice(0, 300)); return fail(500, 'invalid_json'); }
 }
 
 async function handleApi(req, env, path) {
