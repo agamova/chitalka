@@ -472,7 +472,7 @@ async function sha(s){
   return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
 }
 let toastTimer;
-function toast(msg){ toastEl.textContent = msg; toastEl.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastEl.hidden = true; }, 3200); }
+function toast(msg, ms = 3200){ toastEl.textContent = msg; toastEl.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastEl.hidden = true; }, ms); }
 
 // Profile colours from the cobalt + terracotta palette; kids keep their index, so old choices map onto these
 const COLORS = ['#D2694F', '#3D5FE0', '#1F2560', '#7D8CEB', '#A8492F', '#4A4F63'];
@@ -1966,8 +1966,15 @@ document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if (!el || el.disabled) return;
   const fn = A[el.dataset.act];
-  if (fn){ e.preventDefault(); fn(el, e); }
+  if (fn){ e.preventDefault(); Promise.resolve().then(() => fn(el, e)).catch(showFail); }
 });
+// A failed tap used to do nothing at all; say what broke so it can be reported
+function showFail(err){
+  console.error(err);
+  toast('Что-то пошло не так: ' + String((err && (err.message || err.reason)) || err).slice(0, 140), 10000);
+}
+window.addEventListener('error', e => showFail(e.error || e.message));
+window.addEventListener('unhandledrejection', e => showFail(e.reason));
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'bookFile' && t.files && t.files[0]){ importFile(t.files[0]); t.value = ''; }
