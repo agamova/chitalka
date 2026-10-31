@@ -178,6 +178,11 @@ legend{font-weight:700; font-size:14px; margin-bottom:6px}
 .day i{width:30px; height:30px; border-radius:50%; border:2px dashed var(--line); display:grid; place-items:center; font-style:normal; font-size:15px}
 .day.on i{background:var(--second); border:2px solid var(--second); color:var(--on-second)}
 .day.today span{color:var(--ink)}
+.pdays{display:grid; gap:8px}
+.pdays .days{max-width:420px}
+.pdays button.day{padding:0; background:none; border:0; cursor:pointer; font:inherit}
+.pdays button.day:disabled{cursor:default; opacity:.35}
+.pdays .day.hand i{box-shadow:0 0 0 2px var(--surface), 0 0 0 4px var(--line)}
 .shelf{display:grid; grid-template-columns:repeat(auto-fill, minmax(156px, 1fr)); gap:18px}
 .bookbtn{display:grid; gap:8px; text-align:left}
 .cover{--h:210; aspect-ratio:3/4; max-width:100%; border-radius:6px 12px 12px 6px; padding:14px 12px 12px 18px; background:hsl(var(--h) 45% 38%);
@@ -693,10 +698,11 @@ const S = {
 };
 const KID_SCREENS = ['home', 'reader', 'quiz', 'chest'];
 
-function defaultKd(){ return {theme:'day', font:1, books:{}, words:[], prizes:[], log:[], since:0, stats:{q:0, ok:0, chapters:0, days:[]}, last:null, bank:0, bankLog:[], fireDay:null}; }
+function defaultKd(){ return {theme:'day', font:1, books:{}, words:[], prizes:[], log:[], since:0, stats:{q:0, ok:0, chapters:0, days:[]}, last:null, bank:0, bankLog:[], fireDay:null, dayMarks:{}}; }
 function normKd(d){
   const k = Object.assign(defaultKd(), d || {});
   k.stats = Object.assign({q:0, ok:0, chapters:0, days:[]}, k.stats || {});
+  k.dayMarks = k.dayMarks || {};
   k.books = k.books || {}; k.words = k.words || []; k.prizes = k.prizes || []; k.log = k.log || [];
   if (!THEMES.some(t => t.id === k.theme)) k.theme = 'day';
   delete k.themeChosen;
@@ -708,7 +714,13 @@ function mergeKd(server, local){
   if (!server) return local;
   const sv = normKd(server), m = normKd(JSON.parse(JSON.stringify(local)));
   const uniq = (a, b, key) => { const seen = new Map(); a.concat(b).forEach(x => { const k = key(x); if (!seen.has(k)) seen.set(k, x); }); return [...seen.values()]; };
-  m.stats.days = [...new Set(sv.stats.days.concat(m.stats.days))].sort().slice(-90);
+  // Days: union of both copies, then the newest mark per day wins (a parent can add or remove a day, reading again re-adds it)
+  const days = new Set(sv.stats.days.concat(m.stats.days));
+  for (const [d, x] of Object.entries(sv.dayMarks)) if (!m.dayMarks[d] || m.dayMarks[d].at < x.at) m.dayMarks[d] = x;
+  for (const [d, x] of Object.entries(m.dayMarks)) x.on ? days.add(d) : days.delete(d);
+  m.stats.days = [...days].sort().slice(-90);
+  const oldest = m.stats.days[0] || dayStr();
+  for (const d of Object.keys(m.dayMarks)) if (d < oldest && daysAgo(d) > 90) delete m.dayMarks[d];
   for (const f of ['q', 'ok', 'chapters']) m.stats[f] = Math.max(sv.stats[f] || 0, m.stats[f] || 0);
   m.log = [...new Set(sv.log.concat(m.log))].sort((a, b) => a - b).slice(-200);
   // Piggy bank: earnings and payouts are a ledger, the balance follows from it
@@ -1331,21 +1343,35 @@ function weekDays(){
   for (let i = 0; i < 7; i++){ const d = new Date(now); d.setDate(now.getDate() - dow + i); res.push({s:dayStr(d), l:['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][i], today:i === dow}); }
   return res;
 }
+// Last week and this week, Monday first
+function twoWeeks(){
+  const now = new Date(), dow = (now.getDay() + 6) % 7, res = [];
+  for (let i = 0; i < 14; i++){ const d = new Date(now); d.setDate(now.getDate() - dow - 7 + i); res.push({s:dayStr(d), l:['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][i % 7], n:d.getDate(), today:i - 7 === dow, future:i - 7 > dow}); }
+  return res;
+}
+function parentDays(k, d){
+  const st = d.stats, streak = streakDays(st.days);
+  const cell = x => { const on = st.days.includes(x.s), hand = d.dayMarks[x.s] && d.dayMarks[x.s].hand;
+    return `<button class="day${on ? ' on' : ''}${x.today ? ' today' : ''}${hand ? ' hand' : ''}" data-act="toggleDay" data-kid="${k.id}" data-day="${x.s}" ${x.future ? 'disabled' : ''} aria-pressed="${on}" aria-label="${x.l} ${x.n}: ${on ? 'читал(а), снять отметку' : 'не читал(а), отметить'}"><i>${on ? '✓' : ''}</i><span>${x.l} ${x.n}</span></button>`; };
+  const w = twoWeeks();
+  return `<div class="pdays"><h3>Дни чтения · ${streak} ${plural(streak, 'день', 'дня', 'дней')} подряд</h3>
+    <div class="days">${w.slice(0, 7).map(cell).join('')}</div><div class="days">${w.slice(7).map(cell).join('')}</div>
+    <p class="muted">Нажмите на день, чтобы отметить чтение или снять отметку. Дни, исправленные вручную, обведены.</p></div>`;
+}
 function parentProgress(){
   if (!S.family.kids.length) return `<div class="empty"><b>Нет детей</b><span>Добавьте ребёнка на вкладке «Дети».</span></div>`;
   return S.family.kids.map(k => {
     const d = normKd(S.progress[k.id]), st = d.stats;
-    const wk = weekDays().filter(x => st.days.includes(x.s)).length;
     const pct = st.q ? Math.round(st.ok / st.q * 100) + '%' : '—';
     const books = Object.keys(d.books).map(id => ({b:bookById(id), p:d.books[id]})).filter(x => x.b);
     return `<section class="panel kidprog"><header>${ava(k)}<div class="grow"><h2>${esc(k.name)}</h2><div class="muted">${years(k.age)}</div></div></header>
       <div class="stats">
         <div class="stat"><b>${st.chapters}</b><span>глав прочитано</span></div>
-        <div class="stat"><b>${wk} из 7</b><span>дней на этой неделе</span></div>
         <div class="stat"><b>${pct}</b><span>ответов верно с первой попытки</span></div>
         <div class="stat"><b>${d.words.length}</b><span>слов в словарике</span></div>
         <div class="stat"><b>${d.prizes.length}</b><span>призов из сундуков</span></div>
       </div>
+      ${parentDays(k, d)}
       ${books.length ? `<div class="rows">${books.map(x => { const gwr = x.p.globalWordsRead || 0, totalBW = bookTotalWords(x.b), pct = totalBW > 0 ? Math.min(100, Math.round(gwr / totalBW * 100)) : 0; return `<div class="row"><span class="mini-cover" style="--h:${hue(x.b.title)}"></span><div class="grow"><b>${esc(x.b.title)}</b><div class="muted">${x.p.finished ? 'Прочитана' : pct + '% прочитано'}</div></div></div>`; }).join('')}</div>` : ''}
       ${d.words.length ? `<div><h3 style="margin-bottom:8px">Слова, которые ${esc(k.name)} искал(а) недавно</h3><ul class="wordlist">${d.words.slice(0, 8).map(w => `<li><b>${esc(w.w)}</b><span>${esc(w.m)}</span><span class="muted" style="font-size:13px">${esc(w.book)}</span></li>`).join('')}</ul>${d.words.length > 8 ? `<button class="btn alt small" data-act="allWords" data-kid="${k.id}" style="margin-top:8px">Все слова (${d.words.length})</button>` : ''}<p class="muted" style="margin-top:8px">Хороший повод спросить: «А где тебе встретилось это слово?»</p></div>` : ''}
     </section>`;
@@ -1420,8 +1446,7 @@ function prizeHTML(p, ann, style){
   if (style === 'meme') return `<div class="meme"><div class="mtag">${tag}</div><div class="mt" id="annH">${esc(ann && ann.h ? ann.h : 'Когда дочитал главу')}</div><div class="mi">${giftSVG(v)}</div><div class="mb">Приз: ${esc(p.text)}</div><div class="mb" id="annT" style="font-weight:600;padding-top:0">${esc(ann ? ann.t : '…')}</div></div>`;
   return `<div class="prize t${v}"><div class="ptier">${tag}</div><div class="fish">${giftSVG(v)}</div><h2 class="ptext">${esc(p.text)}</h2><p class="pann"${style === 'fire' ? '' : ' id="annT"'}>${esc(style === 'fire' ? 'Пять дней подряд — это настоящая серия. Так держать!' : ann ? ann.t : '…')}</p><p class="pclaim">Приз сохранён в «Моих призах». Покажи его маме или папе.</p></div>`;
 }
-function streakDays(){
-  const days = S.kd.stats.days || [];
+function streakDays(days = S.kd.stats.days || []){
   let n = 0;
   for (let i = 0; i < 30; i++){
     const d = new Date(); d.setDate(d.getDate() - i);
@@ -1436,6 +1461,7 @@ function chestEligible(){
   const y = new Date(); y.setDate(y.getDate() - 1);
   return prev.includes(dayStr(y));
 }
+const daysAgo = d => Math.round((Date.parse(dayStr()) - Date.parse(d)) / 864e5);
 const daysSince = d => Math.round((Date.parse(dayStr()) - Date.parse(d)) / 864e5);
 function fireDue(streak){
   return streak >= STREAK_DAYS && (!S.kd.fireDay || daysSince(S.kd.fireDay) >= STREAK_DAYS);
@@ -1892,6 +1918,7 @@ function completeChapter(total, firstOk){
   if (totalBW > 0 && bp.globalWordsRead >= totalBW){ bp.finished = true; }
   const t = dayStr();
   if (!S.kd.stats.days.includes(t)){ S.kd.stats.days.push(t); S.kd.stats.days = S.kd.stats.days.slice(-90); }
+  S.kd.dayMarks[t] = {on:true, at:Date.now()};
   S.kd.stats.q += total; S.kd.stats.ok += firstOk;
   S.kd.last = b.id;
   saveKd();
@@ -2037,6 +2064,15 @@ const A = {
     if (cur.includes(kid)) cur = cur.filter(k => k !== kid); else cur.push(kid);
     it.kids = cur.length === kids.length ? 'all' : cur;
     await saveFamily().catch(() => toast('Не получилось сохранить')); render();
+  },
+  async toggleDay(el){
+    const id = el.dataset.kid, day = el.dataset.day, kd = normKd(S.progress[id]);
+    const on = !kd.stats.days.includes(day);
+    kd.stats.days = on ? [...kd.stats.days, day].sort().slice(-90) : kd.stats.days.filter(x => x !== day);
+    kd.dayMarks[day] = {on, at:Date.now(), hand:true};
+    S.progress[id] = kd; render();
+    try { S.progress[id] = await saveKidDoc(id, kd); } catch (e) { toast('Не получилось сохранить'); }
+    render();
   },
   async givePrize(el){
     const id = el.dataset.kid, kd = normKd(S.progress[id]);
