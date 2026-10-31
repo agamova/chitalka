@@ -406,6 +406,17 @@ body[data-kt] .fsz button{border-radius:12px}
 .opt:not([disabled]):active{transform:scale(.99)}
 .opt.right{border-color:var(--ok); background:color-mix(in srgb, var(--ok) 16%, var(--surface))}
 .opt.wrong{border-color:var(--danger); background:color-mix(in srgb, var(--danger) 10%, var(--surface)); opacity:.75; text-decoration:line-through}
+.opts.shake{animation:qshake .45s}
+@keyframes qshake{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@media (prefers-reduced-motion: reduce){.opts.shake{animation:none}}
+.qrep{border:1px solid var(--line); border-radius:var(--radius); padding:10px 14px}
+.qrep summary{cursor:pointer; font-weight:700}
+.qrep ol{margin:10px 0 0; padding-left:22px; display:grid; gap:12px}
+.qrep .ans{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0}
+.qrep .ans span{font-size:14px; padding:2px 8px; border-radius:99px; border:1px solid var(--line)}
+.qrep .ans .bad{border-color:var(--danger); color:var(--danger)}
+.qrep .ans .good{border-color:var(--ok); color:var(--ok)}
+.qrep blockquote{margin:4px 0 0; padding-left:10px; border-left:3px solid var(--line); font-size:14px; color:var(--muted)}
 .hint{padding:14px 16px; border-radius:var(--radius); background:color-mix(in srgb, var(--gold) 18%, var(--surface)); font-size:17px}
 .praise{font-family:var(--font-display); font-size:24px; color:var(--ok)}
 .center{min-height:52vh; display:grid; place-content:center; justify-items:center; gap:14px; text-align:center}
@@ -597,7 +608,7 @@ const DEMO = {
 
 /* ---------- prizes ---------- */
 const PRIZE_TYPES = {daily:'Ежедневный сундук', streak:'Огненный сундук'};
-const STREAK_DAYS = 5, MAX_WRONG = 3, MAX_BANK_PER_DAY = 2;
+const STREAK_DAYS = 5, MAX_WRONG = 3, MAX_BANK_PER_DAY = 5, QUIZ_LEN = 10;
 const PRIZE_IDEAS = [['Конфета', 'daily'], ['Наклейка', 'daily'], ['Мороженое', 'daily'], ['Выбрать мультик', 'daily'], ['Не мыть посуду сегодня', 'daily'], ['Лечь спать на 20 минут позже', 'daily'], ['Поход в кафе', 'streak'], ['Новая книга', 'streak'], ['Поход в кино', 'streak']];
 const prizeVis = p => p.type === 'streak' ? 4 : p.type === 'daily' ? 2 : (p.tier || 2);
 const bankCfg = () => Object.assign({name:'минут игры', per:10}, S.family.bank || {});
@@ -698,11 +709,11 @@ const S = {
 };
 const KID_SCREENS = ['home', 'reader', 'quiz', 'chest'];
 
-function defaultKd(){ return {theme:'day', font:1, books:{}, words:[], prizes:[], log:[], since:0, stats:{q:0, ok:0, chapters:0, days:[]}, last:null, bank:0, bankLog:[], fireDay:null, dayMarks:{}}; }
+function defaultKd(){ return {theme:'day', font:1, books:{}, words:[], prizes:[], log:[], since:0, stats:{q:0, ok:0, chapters:0, days:[]}, last:null, bank:0, bankLog:[], fireDay:null, dayMarks:{}, quizLog:[]}; }
 function normKd(d){
   const k = Object.assign(defaultKd(), d || {});
   k.stats = Object.assign({q:0, ok:0, chapters:0, days:[]}, k.stats || {});
-  k.dayMarks = k.dayMarks || {};
+  k.dayMarks = k.dayMarks || {}; k.quizLog = k.quizLog || [];
   k.books = k.books || {}; k.words = k.words || []; k.prizes = k.prizes || []; k.log = k.log || [];
   if (!THEMES.some(t => t.id === k.theme)) k.theme = 'day';
   delete k.themeChosen;
@@ -733,16 +744,18 @@ function mergeKd(server, local){
     : (m.bank || 0) + sum((sv.bankLog || []).filter(e => !localLog.has(e.at) && e.at > paid));
   m.prizes = uniq(m.prizes, sv.prizes, x => x.id).map(x => { const o = sv.prizes.find(y => y.id === x.id); return o && o.given && !x.given ? {...x, given:true, givenAt:o.givenAt} : x; })
     .sort((a, b) => b.at - a.at).slice(0, 200);
+  m.quizLog = uniq(m.quizLog, sv.quizLog, x => x.id).map(x => { const o = sv.quizLog.find(y => y.id === x.id); return o && o.credited && !x.credited ? {...x, credited:o.credited} : x; })
+    .sort((a, b) => b.at - a.at).slice(0, 30);
   m.words = uniq(m.words, sv.words, w => w.raw + '|' + w.bookId).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 1500);
   const svNewer = (sv.lastReadAt || 0) > (m.lastReadAt || 0);
   for (const id of Object.keys(sv.books)){
     const a = sv.books[id], b = m.books[id];
     if (!b){ m.books[id] = a; continue; }
-    const fails = Object.assign({}, a.fails), seenQs = Object.assign({}, a.seenQs);
+    const fails = Object.assign({}, a.fails), chances = Object.assign({}, a.chances);
     Object.entries(b.fails || {}).forEach(([k, v]) => { fails[k] = Math.max(fails[k] || 0, v); });
-    Object.entries(b.seenQs || {}).forEach(([k, v]) => { seenQs[k] = [...new Set((seenQs[k] || []).concat(v))].slice(-40); });
+    Object.entries(b.chances || {}).forEach(([k, v]) => { chances[k] = Math.max(chances[k] || 0, v); });
     m.books[id] = Object.assign({}, b, {globalWordsRead:Math.max(a.globalWordsRead || 0, b.globalWordsRead || 0), done:[...new Set((a.done || []).concat(b.done || []))],
-      finished:!!(a.finished || b.finished), fails, seenQs, pos:svNewer && a.pos != null ? a.pos : b.pos});
+      finished:!!(a.finished || b.finished), fails, chances, pos:svNewer && a.pos != null ? a.pos : b.pos});
   }
   if (svNewer){ m.last = sv.last; m.lastReadAt = sv.lastReadAt; }
   if ((sv.fireDay || '') > (m.fireDay || '')) m.fireDay = sv.fireDay;
@@ -804,7 +817,7 @@ function aiErr(e){
 function needAi(){ if (!Store.sample) throw {code:'no_ai'}; }
 const cleanQs = list => (Array.isArray(list) ? list : []).filter(q =>
   q && typeof q.q === 'string' && Array.isArray(q.options) && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length
-).map(q => ({q:q.q, options:q.options.map(String), answer:q.answer, hint:String(q.hint || '')}));
+).map(q => ({q:q.q, options:q.options.map(String), answer:q.answer, hint:String(q.hint || ''), quote:String(q.quote || '')}));
 // A line of dialogue: starts with a dash
 const isTalk = p => typeof p === 'string' && /^\s*[—–-]/.test(p);
 // Where today's chest stands: always at the end of a paragraph, near the word goal.
@@ -874,19 +887,19 @@ function readQs(list, normText, k){
 }
 // One request gives two sets of questions: the first try and the retake
 const quizInflight = {};
-function getQuiz(book, range, attempt = 0, avoid = []){
-  const b = band(S.kid.age), variant = Math.floor(attempt / 2);
-  const id = 'quiz2_' + book.id + '_' + b + '_' + range.from + '-' + range.to + (variant ? '_r' + variant : '');
-  if (!quizInflight[id]) quizInflight[id] = loadQuizDoc(book, id, range, variant ? avoid : []).finally(() => { delete quizInflight[id]; });
-  return quizInflight[id].then(doc => ({questions:attempt % 2 ? doc.questions2 : doc.questions}));
+// A retake (given by a parent) asks the same questions again, shuffled
+function getQuiz(book, range){
+  const id = 'quiz3_' + book.id + '_' + band(S.kid.age) + '_' + range.from + '-' + range.to;
+  if (!quizInflight[id]) quizInflight[id] = loadQuizDoc(book, id, range).finally(() => { delete quizInflight[id]; });
+  return quizInflight[id];
 }
-async function loadQuizDoc(book, id, range, avoid){
+async function loadQuizDoc(book, id, range){
   const cached = await Store.get(id).catch(() => null);
-  if (cached && cleanQs(cached.questions).length >= 4 && cleanQs(cached.questions2).length >= 4) return cached;
+  if (cached && cleanQs(cached.questions).length >= 4) return cached;
   needAi();
   const age = S.kid.age, b = band(age);
   const text = (await textBetween(book, range.from, range.to)).slice(0, 40000);
-  const k = b === 'l' ? 8 : b === 'm' ? 7 : 6;
+  const k = QUIZ_LEN;
   const prompt =
 `Ты придумываешь вопросы-викторину по книгам для детей. Ребёнок ${years(age)} только что прочитал отрывок из книги «${book.title}»${book.author ? ', ' + book.author : ''}. Вопросы должны проверить, что он прочитал и понял историю, — и чтобы отвечать было интересно.
 Вот отрывок. Дальше ребёнок ещё не читал:
@@ -895,7 +908,7 @@ ${text}
 """
 
 Сначала про себя найди в отрывке главное: что произошло, кто что сделал и почему, какие решения приняли герои, что они придумали, узнали, поняли или почувствовали (если это сказано в тексте), какие были повороты, смешные и яркие моменты, чем закончилась сцена.
-Составь две независимые серии вопросов: questions и questions2, в каждой по ${k + 2} вопросов. Вторая серия — про другие моменты отрывка и не повторяет первую.
+Составь ${k + 2} вопросов по всему отрывку — от начала до конца, без повторов.
 
 Хороший вопрос:
 - про то, что запомнит любой внимательный читатель: событие, поступок, его причину или последствие, решение героя, развязку сцены;
@@ -916,14 +929,13 @@ ${text}
 - hint — подсказка, в каком месте отрывка искать ответ, без самого ответа, до 15 слов;
 - importance — насколько это важно для истории: 3 — ключевое событие или поступок, 2 — заметный момент, 1 — мелкая деталь.
 Вопросы идут в том порядке, в каком события происходят в отрывке.
-${avoid.length ? '\nРебёнок уже видел вопросы ниже. Не повторяй и не перефразируй их:\n' + avoid.map(x => '- ' + x).join('\n') + '\n' : ''}
 Ответь только JSON такого вида:
-{"questions":[{"q":"...","right":"...","wrong":["...","...","..."],"quote":"...","hint":"...","importance":3}],"questions2":[...]}`;
+{"questions":[{"q":"...","right":"...","wrong":["...","...","..."],"quote":"...","hint":"...","importance":3}]}`;
   const r = await Store.sample.json(prompt, {modelTier:'default'});
   const nt = normTxt(text);
-  const questions = readQs(r && r.questions, nt, k), questions2 = readQs(r && r.questions2, nt, k);
+  const questions = readQs(r && r.questions, nt, k);
   if (!questions.length) throw {code:'bad_data'};
-  const doc = {kind:'quiz', book:book.id, band:b, from:range.from, to:range.to, questions, questions2:questions2.length ? questions2 : questions, at:Date.now()};
+  const doc = {kind:'quiz', book:book.id, band:b, from:range.from, to:range.to, questions, at:Date.now()};
   Store.set(id, doc).catch(() => {});
   return doc;
 }
@@ -933,7 +945,7 @@ function prefetchQuiz(book, range){
   const key = book.id + '_' + range.from + '_' + S.kid.id;
   if (quizPrefetched.has(key)) return;
   quizPrefetched.add(key);
-  getQuiz(book, range, failedAttempts(book.id, range.from)).catch(() => quizPrefetched.delete(key));
+  getQuiz(book, range).catch(() => quizPrefetched.delete(key));
 }
 
 /* ---------- import: TXT, FB2, EPUB ---------- */
@@ -1358,6 +1370,24 @@ function parentDays(k, d){
     <div class="days">${w.slice(0, 7).map(cell).join('')}</div><div class="days">${w.slice(7).map(cell).join('')}</div>
     <p class="muted">Нажмите на день, чтобы отметить чтение или снять отметку. Дни, исправленные вручную, обведены.</p></div>`;
 }
+// Quiz reports: what was asked, what the child picked, the right answer and the quote that proves it is in the text
+function quizReportText(k, x){
+  return `${k.name} · «${x.book}» · ${new Date(x.at).toLocaleString('ru-RU')} · попытка ${x.attempt} · ${x.passed ? 'пройдено' : 'не пройдено'}, ошибок ${x.errs}\n\n`
+    + x.qs.map((y, i) => `${i + 1}. ${y.q}\nОтветы: ${y.picks.join(' → ') || 'нет'}${y.ok ? ' ✓' : ' ✗'}\nВерно: ${y.right}\nЦитата: «${y.quote}»`).join('\n\n');
+}
+function parentQuizzes(k, d){
+  const list = d.quizLog.slice(0, 10);
+  if (!list.length) return '';
+  const item = x => {
+    const bp = d.books[x.bookId] || {}, locked = !x.passed && (bp.globalWordsRead || 0) <= x.from && ((bp.fails || {})[x.from] || 0) > ((bp.chances || {})[x.from] || 0);
+    const latest = list.find(y => y.bookId === x.bookId && y.from === x.from) === x;
+    const acts = x.passed ? '' : `<div class="acts" style="margin-top:10px">${locked && latest ? `<button class="btn small" data-act="quizChance" data-kid="${k.id}" data-id="${x.id}">Дать ещё попытку</button>` : ''}${x.credited ? '<span class="saved">✓ День и копилка засчитаны</span>' : `<button class="btn small second" data-act="quizCredit" data-kid="${k.id}" data-id="${x.id}">Засчитать день и копилку</button>`}</div>`;
+    return `<details class="qrep"><summary>${new Date(x.at).toLocaleDateString('ru-RU', {day:'numeric', month:'short'})}, ${new Date(x.at).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})} · «${esc(x.book)}» · ${x.passed ? '✓ пройдено' : '✗ не пройдено'} · ошибок ${x.errs}${x.attempt > 1 ? ' · попытка ' + x.attempt : ''}</summary>
+      <ol>${x.qs.map(y => `<li><b>${esc(y.q)}</b><div class="ans">${y.picks.length ? y.picks.map(p => `<span class="${p === y.right ? 'good' : 'bad'}">${esc(p)}</span>`).join('') : '<span>без ответа</span>'}</div><div>Верно: <b>${esc(y.right)}</b></div>${y.quote ? `<blockquote>«${esc(y.quote)}»</blockquote>` : ''}</li>`).join('')}</ol>
+      ${acts}<div class="acts" style="margin-top:8px"><button class="btn ghost small" data-act="quizCopy" data-kid="${k.id}" data-id="${x.id}">Скопировать отчёт</button></div></details>`;
+  };
+  return `<div class="pdays"><h3>Вопросы по прочитанному</h3>${list.map(item).join('')}</div>`;
+}
 function parentProgress(){
   if (!S.family.kids.length) return `<div class="empty"><b>Нет детей</b><span>Добавьте ребёнка на вкладке «Дети».</span></div>`;
   return S.family.kids.map(k => {
@@ -1372,6 +1402,7 @@ function parentProgress(){
         <div class="stat"><b>${d.prizes.length}</b><span>призов из сундуков</span></div>
       </div>
       ${parentDays(k, d)}
+      ${parentQuizzes(k, d)}
       ${books.length ? `<div class="rows">${books.map(x => { const gwr = x.p.globalWordsRead || 0, totalBW = bookTotalWords(x.b), pct = totalBW > 0 ? Math.min(100, Math.round(gwr / totalBW * 100)) : 0; return `<div class="row"><span class="mini-cover" style="--h:${hue(x.b.title)}"></span><div class="grow"><b>${esc(x.b.title)}</b><div class="muted">${x.p.finished ? 'Прочитана' : pct + '% прочитано'}</div></div></div>`; }).join('')}</div>` : ''}
       ${d.words.length ? `<div><h3 style="margin-bottom:8px">Слова, которые ${esc(k.name)} искал(а) недавно</h3><ul class="wordlist">${d.words.slice(0, 8).map(w => `<li><b>${esc(w.w)}</b><span>${esc(w.m)}</span><span class="muted" style="font-size:13px">${esc(w.book)}</span></li>`).join('')}</ul>${d.words.length > 8 ? `<button class="btn alt small" data-act="allWords" data-kid="${k.id}" style="margin-top:8px">Все слова (${d.words.length})</button>` : ''}<p class="muted" style="margin-top:8px">Хороший повод спросить: «А где тебе встретилось это слово?»</p></div>` : ''}
     </section>`;
@@ -1397,10 +1428,10 @@ function parentPrizes(){
   const bank = bankCfg();
   return `<section class="panel"><h2>Как устроены награды</h2>
     <ul class="muted" style="margin:0;padding-left:20px;display:grid;gap:6px">
-      <li>Прочитал норму слов и прошёл вопросы — получает <b>${bank.per} ${esc(bank.name)}</b> в копилку. Не больше ${MAX_BANK_PER_DAY} норм в день — дальше текст закрыт до завтра. Можно ошибиться до ${MAX_WRONG} раз; больше — придётся перечитать и пройти новые вопросы.</li>
-      <li>Прошёл с первой попытки и читал вчера (или читает первый день) — выбирает один из <b>трёх ежедневных сундуков</b>.</li>
-      <li>Пропустил день — сегодня без сундука, но копилка пополняется. Завтра сундуки вернутся.</li>
-      <li>${STREAK_DAYS} дней чтения подряд — дополнительный <b>огненный сундук</b>. Пропуск дня обнуляет серию.</li>
+      <li>Прочитал норму слов и прошёл вопросы — получает <b>${bank.per} ${esc(bank.name)}</b> в копилку. Не больше ${MAX_BANK_PER_DAY} норм в день — дальше текст закрыт до завтра.</li>
+      <li>${QUIZ_LEN} вопросов, на каждый две попытки. Можно ошибиться до ${MAX_WRONG} раз. Правильные ответы ребёнок не видит. Если ошибок больше, текст дальше закрыт, пока вы не дадите ещё попытку в «Успехах». Там же видны ответы ребёнка.</li>
+      <li>Прошёл вопросы, с любой попытки, — выбирает один из <b>трёх сундуков</b> и читает дальше. Если прошёл не с первой попытки, день и копилку засчитываете вы в «Успехах».</li>
+      <li>${STREAK_DAYS} дней чтения подряд — дополнительный <b>огненный сундук</b>. Пропуск дня обнуляет серию, но обычные сундуки остаются.</li>
     </ul></section>
   <section class="panel"><h2>Копилка</h2><p class="muted">Что копится за каждую пройденную норму. Когда выдадите накопленное — нажмите «Выдать», копилка обнулится.</p>
     <div class="additem"><label>Что копим<input id="bankName" maxlength="30" value="${esc(bank.name)}" placeholder="минут игры"></label><label>Сколько за норму<input id="bankPer" type="number" min="1" max="999" value="${bank.per}"></label><button class="btn" data-act="saveBank">Сохранить</button></div>
@@ -1454,34 +1485,31 @@ function streakDays(days = S.kd.stats.days || []){
   }
   return n;
 }
-// Сундук положен, если вчера было чтение или это самый первый день чтения
-function chestEligible(){
-  const today = dayStr(), prev = (S.kd.stats.days || []).filter(d => d !== today);
-  if (!prev.length) return true;
-  const y = new Date(); y.setDate(y.getDate() - 1);
-  return prev.includes(dayStr(y));
-}
 const daysAgo = d => Math.round((Date.parse(dayStr()) - Date.parse(d)) / 864e5);
 const daysSince = d => Math.round((Date.parse(dayStr()) - Date.parse(d)) / 864e5);
 function fireDue(streak){
   return streak >= STREAK_DAYS && (!S.kd.fireDay || daysSince(S.kd.fireDay) >= STREAK_DAYS);
 }
 const bankToday = () => (S.kd.bankLog || []).filter(x => dayStr(new Date(x.at)) === dayStr()).length;
+// Norms passed today, on any attempt: after MAX_BANK_PER_DAY the text waits until tomorrow
+const normsToday = () => (S.kd.quizLog || []).filter(x => x.passed && dayStr(new Date(x.at)) === dayStr()).length;
 function grantReward(q){
-  const eligible = chestEligible(), firstTry = !q.isRetry;
-  completeChapter(q.qs.length, q.firstOk);
-  const bank = bankCfg(), add = bankToday() < MAX_BANK_PER_DAY ? bank.per : 0;
+  // A retake (a parent gave another try) opens the chest; the day and the piggy bank are the parent's call
+  const retake = q.attempt > 1;
+  completeChapter(q.qs.length, q.firstOk, !retake);
+  const bank = bankCfg(), add = !retake && bankToday() < MAX_BANK_PER_DAY ? bank.per : 0;
   if (add){
     S.kd.bank = (S.kd.bank || 0) + add;
     S.kd.bankLog = (S.kd.bankLog || []).concat({at:Date.now(), n:add, book:S.reader.book.title}).slice(-200);
   }
   const streak = streakDays();
-  const daily = firstTry && eligible ? pickPrizes('daily', 3) : [];
+  // A passed quiz always opens a chest, on any attempt and whatever the streak
+  const daily = pickPrizes('daily', 3);
   let fire = null;
-  if (firstTry && fireDue(streak)){ fire = pickPrizes('streak', 1)[0] || null; if (fire) S.kd.fireDay = dayStr(); }
+  if (fireDue(streak)){ fire = pickPrizes('streak', 1)[0] || null; if (fire) S.kd.fireDay = dayStr(); }
   saveKd();
   S.chest = {daily, fire, state:daily.length ? 'closed' : 'open', chosen:null, fireOpen:false, ann:null,
-    style:Math.random() < 0.35 ? 'meme' : 'card', minutes:add, firstTry, eligible, streak, firstOk:q.firstOk, total:q.qs.length};
+    style:Math.random() < 0.35 ? 'meme' : 'card', minutes:add, retake, streak, firstOk:q.firstOk, total:q.qs.length};
 }
 function savePrize(p){
   S.kd.prizes.unshift({id:newId(), text:p.text, type:p.type, at:Date.now(), given:false, book:S.reader.book.title});
@@ -1503,13 +1531,12 @@ function rewardStatsHTML(){
   const sinceFire = kd.fireDay ? daysSince(kd.fireDay) : Infinity;
   const done = sinceFire < streak ? sinceFire : streak;
   const left = Math.max(0, STREAK_DAYS - done);
-  const fireLine = left === 0 ? 'Огненный сундук ждёт — пройди вопросы с первой попытки!' : `До огненного сундука: ${left} ${plural(left, 'день', 'дня', 'дней')}`;
-  const dayDone = bankToday() >= MAX_BANK_PER_DAY ? `<p style="font-size:14px;font-weight:700;margin:0 0 4px">${ico('moon')} На сегодня норма выполнена — продолжение завтра.</p>` : '';
-  const noChest = !chestEligible() ? `<p class="muted" style="font-size:13px;margin:0">Вчера чтения не было — сегодня без сундуков. Почитай сегодня, и завтра они вернутся!</p>` : '';
+  const fireLine = left === 0 ? 'Огненный сундук ждёт — пройди вопросы!' : `До огненного сундука: ${left} ${plural(left, 'день', 'дня', 'дней')}`;
+  const dayDone = normsToday() >= MAX_BANK_PER_DAY ? `<p style="font-size:14px;font-weight:700;margin:0 0 4px">${ico('moon')} На сегодня норма выполнена — продолжение завтра.</p>` : '';
   return `<div class="kstats">
-    <div class="kstat"><b>${kd.bank || 0}</b><span>${esc(bank.name)} в копилке · сегодня ${Math.min(bankToday(), MAX_BANK_PER_DAY)} из ${MAX_BANK_PER_DAY}</span></div>
+    <div class="kstat"><b>${kd.bank || 0}</b><span>${esc(bank.name)} в копилке · сегодня ${Math.min(normsToday(), MAX_BANK_PER_DAY)} из ${MAX_BANK_PER_DAY}</span></div>
     <div class="kstat${streak >= 2 ? ' hot' : ''}"><b>${ico('flame')} ${streak}</b><span>${plural(streak, 'день', 'дня', 'дней')} подряд</span></div>
-  </div><p class="muted" style="font-size:13px;margin:0 0 4px">${fireLine}</p>${dayDone}${noChest}`;
+  </div><p class="muted" style="font-size:13px;margin:0 0 4px">${fireLine}</p>${dayDone}`;
 }
 // The child's dictionary: newest first, a search box and 30 words at a time
 const DICT_STEP = 30;
@@ -1607,11 +1634,12 @@ function scrReader(){
   if (r.mode === 'finished') parts.push(`<div class="chest-gate">${ico('book', 'kicon')}<b style="font-size:18px">Конец книги</b><p class="muted" style="margin:0">Ты прочитал её целиком!</p>${home}</div>`);
   else if (r.mode === 'locked') parts.push(`<div class="chest-gate">${ico('moon', '').replace('<svg ', '<svg style="width:48px;height:48px" ')}<b style="font-size:18px">На сегодня норма выполнена!</b><p class="muted" style="margin:0;text-align:center;max-width:34ch">Продолжение откроется завтра. Отдыхай — книга подождёт.</p>${home}</div>`);
   else {
-    const failed = failedAttempts(b.id, r.gate.from);
     const resume = S.quiz && S.quiz.qs && !S.quiz.finished && S.quiz.bookId === b.id && S.quiz.from === r.gate.from;
-    const label = resume ? `Вернуться к вопросу ${S.quiz.idx + 1}` : failed ? 'Пройти новые вопросы — пополнить копилку' : 'Открой сундук — ответь на вопросы';
-    const note = failed ? `<p class="muted" style="font-size:13px;margin:0;text-align:center;max-width:36ch">Сундук сгорел. Перечитай отрывок внимательно — за новые вопросы получишь ${bankCfg().per} ${esc(bankCfg().name)}.</p>` : '';
-    parts.push(`<div class="chest-gate" id="gate">${note}<button class="chest-gate-btn" data-act="startQuiz">${chestSVG()}<span>${label}</span></button></div>`);
+    if (!resume && quizLocked(b.id, r.gate.from)) parts.push(`<div class="chest-gate" id="gate">${chestSVG()}<b style="font-size:18px">Вопросы не пройдены</b><p class="muted" style="margin:0;text-align:center;max-width:36ch">Перечитай отрывок внимательно. Новую попытку дадут родители — они увидят твои ответы.</p>${home}</div>`);
+    else {
+      const label = resume ? `Вернуться к вопросу ${S.quiz.idx + 1}` : failedAttempts(b.id, r.gate.from) ? 'Ещё одна попытка — ответь на вопросы' : 'Открой сундук — ответь на вопросы';
+      parts.push(`<div class="chest-gate" id="gate"><button class="chest-gate-btn" data-act="startQuiz">${chestSVG()}<span>${label}</span></button></div>`);
+    }
   }
   const text = parts.join('').replace(/<span class="w">([^<]+)<\/span>/g, (m, w) => seen.has(w.toLowerCase()) ? `<span class="w seen">${w}</span>` : m);
   return `<div class="reader">${bar}<article class="page" style="--read-size:${FONT_SIZES[S.kd.font]}px">${text}</article></div>`;
@@ -1712,8 +1740,8 @@ function scrQuiz(){
     if (!q.passed){
       return `<div class="quiz">${head}<div class="center" style="padding:32px 0">
         <svg viewBox="0 -26 160 160" style="width:140px;height:auto" aria-hidden="true">${FLAME_SVG}</svg>
-        <h2 class="display" style="margin:8px 0 4px">${q.isRetry ? 'Снова слишком много ошибок' : 'Сундук сгорел!'}</h2>
-        <p class="muted" style="max-width:34ch">Ошибок: ${errs}, а можно не больше ${MAX_WRONG}. ${q.isRetry ? '' : 'Сундука за этот отрывок уже не будет. '}Перечитай отрывок внимательно — потом будут новые вопросы, и за них ты получишь ${bank.per} ${esc(bank.name)}.</p>
+        <h2 class="display" style="margin:8px 0 4px">Слишком много ошибок</h2>
+        <p class="muted" style="max-width:34ch">Ошибок: ${errs}, а можно не больше ${MAX_WRONG}. Перечитай отрывок внимательно. Новую попытку дадут родители — они увидят твои ответы.</p>
         <div class="acts" style="justify-content:center;margin-top:18px">
           <button class="btn big" data-act="burnedRead">Перечитать отрывок</button>
           <button class="btn alt" data-act="toHome">К книгам</button>
@@ -1724,7 +1752,7 @@ function scrQuiz(){
       <div class="praise" style="font-size:clamp(44px,10vw,72px);line-height:1">${q.firstOk} из ${total}</div>
       <h2 class="display" style="margin:8px 0 4px">${errs === 0 ? 'Без единой ошибки!' : 'Вопросы пройдены!'}</h2>
       <p class="muted">Ошибок: ${errs} из ${MAX_WRONG} допустимых</p>
-      ${q.isRetry ? '<p class="muted" style="font-size:14px">Сундук сгорел в прошлый раз, но копилка пополнится.</p>' : ''}
+      ${q.attempt > 1 ? '<p class="muted" style="font-size:14px">Сундук твой! День и копилку засчитают родители.</p>' : ''}
       <button class="btn big" data-act="claimAfterQuiz" style="margin-top:16px">Забрать награду 🎉</button>
     </div></div>`;
   }
@@ -1733,9 +1761,9 @@ function scrQuiz(){
     <div class="qdots" aria-label="Вопрос ${q.idx + 1} из ${q.qs.length}">${q.qs.map((x, i) => `<i class="${i < q.idx ? 'on' : i === q.idx ? 'cur' : ''}"></i>`).join('')}</div>
     <div class="eyebrow">Вопрос ${q.idx + 1} из ${q.qs.length} · ${(q.totalWrong || 0) > MAX_WRONG ? `ошибок ${q.totalWrong} — больше ${MAX_WRONG}` : `ошибок ${q.totalWrong || 0} из ${MAX_WRONG}`}</div>
     <h2 class="qtext">${esc(cur.q)}</h2>
-    <div class="opts">${cur.options.map((o, i) => { const st = q.solved && i === cur.answer ? 'right' : q.wrong.includes(i) ? 'wrong' : ''; return `<button class="opt ${st}" data-act="answer" data-i="${i}" ${q.solved || q.wrong.includes(i) ? 'disabled' : ''}>${esc(o)}</button>`; }).join('')}</div>
-    ${q.wrong.length && !q.solved ? `<div class="hint"><b>Подсказка.</b> ${esc(cur.hint || 'Загляни в текст ещё раз.')} <button class="btn small alt" data-act="rereadHint" style="margin-left:6px">Перечитать в книге</button></div>` : ''}
-    ${q.solved ? `<div class="praise">${esc(q.praise)}</div><div><button class="btn big" data-act="nextQ">${last ? 'Посмотреть результат' : 'Следующий вопрос'}</button></div>` : ''}
+    <div class="opts${Date.now() - (q.shakeAt || 0) < 400 ? ' shake' : ''}">${cur.options.map((o, i) => { const st = q.solved && i === cur.answer ? 'right' : q.wrong.includes(i) ? 'wrong' : ''; return `<button class="opt ${st}" data-act="answer" data-i="${i}" ${q.solved || q.missed || q.wrong.includes(i) ? 'disabled' : ''}>${esc(o)}</button>`; }).join('')}</div>
+    ${q.wrong.length && !q.solved && !q.missed ? `<div class="hint"><b>Перечитай и попробуй ещё раз.</b> ${esc(cur.hint || '')} <button class="btn small alt" data-act="rereadHint" style="margin-left:6px">Перечитать в книге</button></div>` : ''}
+    ${q.solved || q.missed ? `<div class="praise">${esc(q.solved ? q.praise : 'Не получилось — идём дальше')}</div><div><button class="btn big" data-act="nextQ">${last ? 'Посмотреть результат' : 'Следующий вопрос'}</button></div>` : ''}
   </div>`;
 }
 
@@ -1751,7 +1779,7 @@ function scrChest(){
   const finished = bookProg(b.id).finished;
   const nextBtn = finished ? '' : `<button class="btn" data-act="readBook" data-id="${b.id}">Читать дальше</button>`;
   const after = `${finished ? '<p class="praise">Книга прочитана целиком!</p>' : ''}<div class="acts" style="justify-content:center">${nextBtn}<button class="btn alt" data-act="toHome">К книгам</button></div>`;
-  const head = `<div class="eyebrow">Норма прочитана</div><div class="bank-badge">${c.minutes ? `+${c.minutes} ${esc(bank.name)}` : `Копилка на сегодня полная (${MAX_BANK_PER_DAY} из ${MAX_BANK_PER_DAY})`} · в копилке ${S.kd.bank}</div>`;
+  const head = `<div class="eyebrow">Норма прочитана</div><div class="bank-badge">${c.minutes ? `+${c.minutes} ${esc(bank.name)}` : c.retake ? 'Копилку и день засчитают родители' : `Копилка на сегодня полная (${MAX_BANK_PER_DAY} из ${MAX_BANK_PER_DAY})`} · в копилке ${S.kd.bank}</div>`;
   const nd = c.daily.length;
   if (nd && c.state !== 'open'){
     const opening = c.state === 'opening';
@@ -1766,10 +1794,7 @@ function scrChest(){
     main = `<div class="pop" style="display:grid;justify-items:center;width:100%">${prizeHTML(c.daily[c.chosen], c.ann, c.style)}</div>
       ${others ? `<div class="others"><b>А в других сундуках было:</b>${others}</div>` : ''}`;
   } else {
-    const why = !c.firstTry ? 'Сундук сгорел, но копилка пополнилась. В следующий раз постарайся ответить без лишних ошибок!'
-      : !c.eligible ? 'Вчера чтения не было, поэтому сегодня без сундука. Почитай сегодня — и завтра сундуки вернутся!'
-      : 'Взрослые ещё не положили призы в сундуки. Попроси их добавить призы в настройках.';
-    main = `<h1 class="display">${c.firstTry && c.eligible ? 'Копилка пополнена!' : 'Сегодня без сундука'}</h1><p class="muted" style="max-width:36ch;text-align:center">${why}</p>`;
+    main = `<h1 class="display">Копилка пополнена!</h1><p class="muted" style="max-width:36ch;text-align:center">Взрослые ещё не положили призы в сундуки. Попроси их добавить призы в настройках.</p>`;
   }
   let fire = '';
   if (c.fire){
@@ -1815,7 +1840,7 @@ async function openReader(book, pos){
   try {
     const gwr = bp.globalWordsRead || 0, total = bookTotalWords(book);
     if (total > 0 && gwr >= total){ r.mode = 'finished'; r.end = total; }
-    else if (bankToday() >= MAX_BANK_PER_DAY){ r.mode = 'locked'; r.end = gwr; }
+    else if (normsToday() >= MAX_BANK_PER_DAY){ r.mode = 'locked'; r.end = gwr; }
     else { r.gate = await findGate(book, gwr); r.mode = 'gate'; r.end = r.gate.to; }
     r.pos = Math.max(0, Math.min(pos != null ? pos : bp.pos != null ? bp.pos : gwr, r.end - 1));
     r.from = Math.max(0, Math.min(chAt(book, r.pos), chAt(book, gwr)) - 1);
@@ -1880,29 +1905,31 @@ async function wordCache(bookId){
   return {id, map:S.wc[id]};
 }
 const failedAttempts = (bookId, ch) => (((S.kd.books[bookId] || {}).fails || {})[ch]) || 0;
+// After a failed quiz the rest of the book waits until a parent gives another try
+const quizLocked = (bookId, from) => failedAttempts(bookId, from) > ((((S.kd.books[bookId] || {}).chances || {})[from]) || 0);
 async function startQuiz(){
   const r = S.reader, g = r.gate;
   if (!g) return;
   // Resume in-progress quiz if it's for the same stretch of text
   if (S.quiz && S.quiz.qs && !S.quiz.finished && S.quiz.bookId === r.book.id && S.quiz.from === g.from){ go('quiz'); return; }
+  if (quizLocked(r.book.id, g.from)){ go('reader'); return; }
   const attempt = failedAttempts(r.book.id, g.from);
-  const avoid = attempt ? (((S.kd.books[r.book.id] || {}).seenQs || {})[g.from] || []) : [];
   S.quiz = {loading:true};
   go('quiz');
   try {
-    const doc = await getQuiz(r.book, g, attempt, avoid);
+    const doc = await getQuiz(r.book, g);
     // Questions follow the story; only the answers are shuffled
     const qs = doc.questions.map(q => {
       const order = shuffle(q.options.map((_, i) => i));
       return {q:q.q, hint:q.hint, quote:q.quote || '', options:order.map(i => q.options[i]), answer:order.indexOf(q.answer)};
     });
-    S.quiz = {qs, idx:0, wrong:[], solved:false, firstOk:0, praise:'', totalWrong:0, bookId:r.book.id, from:g.from, isRetry:attempt > 0};
+    S.quiz = {qs, idx:0, wrong:[], solved:false, missed:false, firstOk:0, praise:'', totalWrong:0, log:[], bookId:r.book.id, from:g.from, to:g.to, attempt:attempt + 1};
   } catch (e) {
     S.quiz = {error:aiErr(e)};
   }
   if (S.screen === 'quiz') render();
 }
-function completeChapter(total, firstOk){
+function completeChapter(total, firstOk, countDay = true){
   const r = S.reader, b = r.book;
   const bp = S.kd.books[b.id] = S.kd.books[b.id] || {ch:0, done:[], globalWordsRead:0};
   const before = bp.globalWordsRead || 0;
@@ -1917,8 +1944,10 @@ function completeChapter(total, firstOk){
   const totalBW = bookTotalWords(b);
   if (totalBW > 0 && bp.globalWordsRead >= totalBW){ bp.finished = true; }
   const t = dayStr();
-  if (!S.kd.stats.days.includes(t)){ S.kd.stats.days.push(t); S.kd.stats.days = S.kd.stats.days.slice(-90); }
-  S.kd.dayMarks[t] = {on:true, at:Date.now()};
+  if (countDay){
+    if (!S.kd.stats.days.includes(t)){ S.kd.stats.days.push(t); S.kd.stats.days = S.kd.stats.days.slice(-90); }
+    S.kd.dayMarks[t] = {on:true, at:Date.now()};
+  }
   S.kd.stats.q += total; S.kd.stats.ok += firstOk;
   S.kd.last = b.id;
   saveKd();
@@ -2065,6 +2094,29 @@ const A = {
     it.kids = cur.length === kids.length ? 'all' : cur;
     await saveFamily().catch(() => toast('Не получилось сохранить')); render();
   },
+  async quizChance(el){
+    const id = el.dataset.kid, kd = normKd(S.progress[id]), x = kd.quizLog.find(y => y.id === el.dataset.id); if (!x) return;
+    const bp = kd.books[x.bookId] = kd.books[x.bookId] || {ch:0, done:[], globalWordsRead:0};
+    bp.chances = bp.chances || {}; bp.chances[x.from] = (bp.fails || {})[x.from] || 0;
+    try { S.progress[id] = await saveKidDoc(id, kd); toast('Попытка открыта'); } catch (e) { toast('Не получилось сохранить'); }
+    render();
+  },
+  async quizCredit(el){
+    const id = el.dataset.kid, kd = normKd(S.progress[id]), x = kd.quizLog.find(y => y.id === el.dataset.id); if (!x || x.credited) return;
+    const day = dayStr(new Date(x.at)), bank = bankCfg(), now = Date.now();
+    x.credited = now;
+    if (!kd.stats.days.includes(day)) kd.stats.days = [...kd.stats.days, day].sort().slice(-90);
+    kd.dayMarks[day] = {on:true, at:now, hand:true};
+    kd.bank = (kd.bank || 0) + bank.per;
+    kd.bankLog = (kd.bankLog || []).concat({at:now, n:bank.per, book:x.book, hand:true}).slice(-200);
+    try { S.progress[id] = await saveKidDoc(id, kd); toast('Засчитано'); } catch (e) { toast('Не получилось сохранить'); }
+    render();
+  },
+  quizCopy(el){
+    const k = S.family.kids.find(y => y.id === el.dataset.kid), x = normKd(S.progress[el.dataset.kid]).quizLog.find(y => y.id === el.dataset.id);
+    if (!k || !x) return;
+    navigator.clipboard.writeText(quizReportText(k, x)).then(() => toast('Отчёт скопирован'), () => toast('Не получилось скопировать'));
+  },
   async toggleDay(el){
     const id = el.dataset.kid, day = el.dataset.day, kd = normKd(S.progress[id]);
     const on = !kd.stats.days.includes(day);
@@ -2160,24 +2212,30 @@ const A = {
     if (spot){ S.reader.pos = spot.pos; S.reader.flash = spot.key; }
     go('reader');
   },
+  // Two tries per question; after the second miss the right answer stays hidden (the parent sees it in the report)
   answer(el){
     const q = S.quiz, cur = q.qs[q.idx], i = +el.dataset.i;
-    if (q.solved) return;
-    if (i === cur.answer){ q.solved = true; if (!q.wrong.length) q.firstOk++; q.praise = PRAISE[Math.floor(Math.random() * PRAISE.length)]; }
-    else if (!q.wrong.includes(i)){ q.wrong.push(i); q.totalWrong = (q.totalWrong || 0) + 1; }
+    if (q.solved || q.missed || q.wrong.includes(i)) return;
+    const rec = q.log[q.idx] = q.log[q.idx] || {picks:[], ok:false};
+    rec.picks.push(cur.options[i]);
+    if (i === cur.answer){ q.solved = rec.ok = true; if (!q.wrong.length) q.firstOk++; q.praise = PRAISE[Math.floor(Math.random() * PRAISE.length)]; }
+    else { q.wrong.push(i); q.totalWrong = (q.totalWrong || 0) + 1; q.shakeAt = Date.now(); if (q.wrong.length >= 2) q.missed = true; }
     render();
   },
   nextQ(){
     const q = S.quiz;
-    if (q.idx < q.qs.length - 1){ q.idx++; q.wrong = []; q.solved = false; render(); return; }
+    if (q.idx < q.qs.length - 1){ q.idx++; q.wrong = []; q.solved = q.missed = false; render(); return; }
     q.finished = true;
     q.passed = (q.totalWrong || 0) <= MAX_WRONG;
+    const b = bookById(q.bookId);
+    S.kd.quizLog.unshift({id:newId(), at:Date.now(), bookId:q.bookId, book:b ? b.title : '', from:q.from, to:q.to, attempt:q.attempt, passed:q.passed, errs:q.totalWrong || 0,
+      qs:q.qs.map((x, i) => ({q:x.q, right:x.options[x.answer], quote:x.quote || '', picks:(q.log[i] || {}).picks || [], ok:!!(q.log[i] || {}).ok}))});
+    S.kd.quizLog = S.kd.quizLog.slice(0, 30);
     if (!q.passed){
       const bp = S.kd.books[q.bookId] = S.kd.books[q.bookId] || {ch:0, done:[], globalWordsRead:0};
       bp.fails = bp.fails || {}; bp.fails[q.from] = (bp.fails[q.from] || 0) + 1;
-      bp.seenQs = bp.seenQs || {}; bp.seenQs[q.from] = (bp.seenQs[q.from] || []).concat(q.qs.map(x => x.q)).slice(-40);
-      saveKd();
     }
+    saveKd();
     render();
   },
   claimAfterQuiz(){
