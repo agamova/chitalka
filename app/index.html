@@ -702,11 +702,60 @@ function normKd(d){
   delete k.themeChosen;
   return k;
 }
-let kdTimer;
+// Two devices (or an old tab) can hold different copies of a child's progress.
+// Saving merges with what is stored instead of overwriting it, so nothing read, earned or given gets lost.
+function mergeKd(server, local){
+  if (!server) return local;
+  const sv = normKd(server), m = normKd(JSON.parse(JSON.stringify(local)));
+  const uniq = (a, b, key) => { const seen = new Map(); a.concat(b).forEach(x => { const k = key(x); if (!seen.has(k)) seen.set(k, x); }); return [...seen.values()]; };
+  m.stats.days = [...new Set(sv.stats.days.concat(m.stats.days))].sort().slice(-90);
+  for (const f of ['q', 'ok', 'chapters']) m.stats[f] = Math.max(sv.stats[f] || 0, m.stats[f] || 0);
+  m.log = [...new Set(sv.log.concat(m.log))].sort((a, b) => a - b).slice(-200);
+  // Piggy bank: earnings and payouts are a ledger, the balance follows from it
+  const lastPaid = x => Math.max(0, ...(x.bankPaid || []).map(e => e.at));
+  const localLog = new Set((m.bankLog || []).map(e => e.at)), localPaid = lastPaid(m);
+  m.bankLog = uniq(m.bankLog || [], sv.bankLog || [], e => e.at).sort((a, b) => a.at - b.at).slice(-200);
+  m.bankPaid = uniq(m.bankPaid || [], sv.bankPaid || [], e => e.at).sort((a, b) => a.at - b.at).slice(-100);
+  const paid = lastPaid(m), sum = list => list.reduce((n, e) => n + (e.n || 0), 0);
+  m.bank = paid > localPaid ? sum(m.bankLog.filter(e => e.at > paid))
+    : (m.bank || 0) + sum((sv.bankLog || []).filter(e => !localLog.has(e.at) && e.at > paid));
+  m.prizes = uniq(m.prizes, sv.prizes, x => x.id).map(x => { const o = sv.prizes.find(y => y.id === x.id); return o && o.given && !x.given ? {...x, given:true, givenAt:o.givenAt} : x; })
+    .sort((a, b) => b.at - a.at).slice(0, 200);
+  m.words = uniq(m.words, sv.words, w => w.raw + '|' + w.bookId).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 1500);
+  const svNewer = (sv.lastReadAt || 0) > (m.lastReadAt || 0);
+  for (const id of Object.keys(sv.books)){
+    const a = sv.books[id], b = m.books[id];
+    if (!b){ m.books[id] = a; continue; }
+    const fails = Object.assign({}, a.fails), seenQs = Object.assign({}, a.seenQs);
+    Object.entries(b.fails || {}).forEach(([k, v]) => { fails[k] = Math.max(fails[k] || 0, v); });
+    Object.entries(b.seenQs || {}).forEach(([k, v]) => { seenQs[k] = [...new Set((seenQs[k] || []).concat(v))].slice(-40); });
+    m.books[id] = Object.assign({}, b, {globalWordsRead:Math.max(a.globalWordsRead || 0, b.globalWordsRead || 0), done:[...new Set((a.done || []).concat(b.done || []))],
+      finished:!!(a.finished || b.finished), fails, seenQs, pos:svNewer && a.pos != null ? a.pos : b.pos});
+  }
+  if (svNewer){ m.last = sv.last; m.lastReadAt = sv.lastReadAt; }
+  if ((sv.fireDay || '') > (m.fireDay || '')) m.fireDay = sv.fireDay;
+  return m;
+}
+// Reads the stored copy, merges and writes back; queued per child so two saves never interleave
+function saveKidDoc(kidId, data){
+  const id = 'kid_' + kidId;
+  return Store.queue(id, async () => {
+    const merged = mergeKd(await Store.get(id), data);
+    const res = await Store.req('/api/db/' + encodeURIComponent(id), {method:'POST', body:JSON.stringify(merged)});
+    if (!res.ok) throw new Error('Ошибка сохранения');
+    return merged;
+  });
+}
+let kdTimer, kdSeq = 0;
 function saveKd(){
   clearTimeout(kdTimer);
-  const id = 'kid_' + S.kid.id, data = JSON.parse(JSON.stringify(S.kd));
-  kdTimer = setTimeout(() => { Store.set(id, data).catch(() => toast('Не получилось сохранить прогресс')); }, 400);
+  const kid = S.kid.id, kd = S.kd, seq = ++kdSeq;
+  kdTimer = setTimeout(() => {
+    saveKidDoc(kid, JSON.parse(JSON.stringify(kd)))
+      // Pick up what another device added, unless the child changed something in the meantime
+      .then(m => { if (seq === kdSeq && S.kd === kd){ Object.assign(kd, m); if (S.screen === 'home') render(); } })
+      .catch(() => toast('Не получилось сохранить прогресс'));
+  }, 400);
 }
 function saveFamily(){ return Store.set('family', S.family); }
 const bookById = id => S.books.find(b => b.id === id);
@@ -1993,7 +2042,7 @@ const A = {
     const id = el.dataset.kid, kd = normKd(S.progress[id]);
     const p = kd.prizes.find(x => x.id === el.dataset.id); if (!p) return;
     p.given = true; p.givenAt = Date.now();
-    try { await Store.set('kid_' + id, kd); S.progress[id] = kd; } catch (e) { toast('Не получилось сохранить'); }
+    try { S.progress[id] = await saveKidDoc(id, kd); } catch (e) { toast('Не получилось сохранить'); }
     render();
   },
   editKid(el){ S.editKid = el.dataset.id; render(); },
@@ -2113,7 +2162,7 @@ const A = {
     const id = el.dataset.kid, kd = normKd(S.progress[id]);
     kd.bankPaid = (kd.bankPaid || []).concat({at:Date.now(), n:kd.bank}).slice(-100);
     kd.bank = 0;
-    try { await Store.set('kid_' + id, kd); S.progress[id] = kd; toast('Копилка обнулена'); } catch (e) { toast('Не получилось сохранить'); }
+    try { S.progress[id] = await saveKidDoc(id, kd); toast('Копилка обнулена'); } catch (e) { toast('Не получилось сохранить'); }
     render();
   },
   openFire(){ openFire(); },
